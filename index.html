@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#080810" />
+    <meta
+      name="theme-color"
+      content="#080810"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#080810"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PROTOX" />
+    <meta name="msapplication-navbutton-color" content="#080810" />
+    <meta name="msapplication-TileColor" content="#080810" />
+    <title>PROTOX PROTOCOL</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ============================================
+     APP CONTAINER
+     ============================================ -->
+    <div id="app">
+      <!-- TOP BAR -->
+      <div id="top-bar">
+        <span id="profile-name-header">Player</span>
+        <div id="top-bar-right">
+          <button
+            class="icon-btn"
+            id="darklight-icon"
+            onclick="DarkLight.toggle()"
+          >
+            ☀️
+          </button>
+          <button class="icon-btn" onclick="Navigation.goTo('profile')">
+            ⚙️
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================
+         PAGINA HOME
+         ============================================ -->
+      <div class="page page-active" id="page-home">
+        <!-- HEADER -->
+        <div id="header">
+          <h1>⚡ PROTOX PROTOCOL</h1>
+          <p id="player-level">LEVEL 1 — NPC</p>
+        </div>
+
+        <!-- THEME SWITCHER -->
+        <div id="theme-switcher">
+            <button class="theme-btn active" onclick="setTheme('purple')" id="theme-purple">
+                <span class="theme-dot purple-dot"></span>
+            </button>
+            <button class="theme-btn" onclick="setTheme('red')" id="theme-red">
+                <span class="theme-dot red-dot"></span>
+            </button>
+            <button class="theme-btn" onclick="setTheme('blue')" id="theme-blue">
+                <span class="theme-dot blue-dot"></span>
+            </button>
+            <button class="theme-btn" onclick="setTheme('green')" id="theme-green">
+                <span class="theme-dot green-dot"></span>
+            </button>
+            <button class="theme-btn" onclick="setTheme('gold')" id="theme-gold">
+                <span class="theme-dot gold-dot"></span>
+            </button>
+            <div class="theme-custom-wrapper">
+                <input type="color" id="custom-color-picker" class="color-picker-hidden" value="#8b5cf6" onchange="applyCustomColor(this.value)">
+                <button class="theme-btn theme-custom-btn" onclick="document.getElementById('custom-color-picker').click()" id="theme-custom">
+                    <span class="theme-dot custom-dot">🎨</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div id="stats-bar">
+          <div class="stat-block">
+            <span class="stat-label">XP</span>
+            <span class="stat-value" id="xp-display">0</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">STREAK</span>
+            <span class="stat-value" id="streak-display">0 🔥</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">REPS</span>
+            <span class="stat-value" id="reps-display">0</span>
+          </div>
+        </div>
+
+        <!-- XP BAR -->
+        <div id="xp-bar-container">
+          <div id="xp-bar-fill"></div>
+          <span id="xp-bar-text">0 / 500 XP</span>
+        </div>
+
+        <!-- MULTIPLIER DISPLAY -->
+        <div id="multiplier-display"></div>
+
+        <!-- PROTOX TRACKER -->
+        <div id="protox-section">
+          <h2>🧠 PROTOX TRACKER</h2>
+          <p id="reps-total">0 / 100,000 REPS</p>
+          <div id="protox-bar-container">
+            <div id="protox-bar-fill"></div>
+          </div>
+
+          <!-- BOTTONI VELOCI -->
+          <div id="rep-buttons">
+            <button class="rep-btn" onclick="addReps(10)">+10</button>
+            <button class="rep-btn" onclick="addReps(50)">+50</button>
+            <button class="rep-btn" onclick="addReps(100)">+100</button>
+            <button class="rep-btn" onclick="addReps(500)">+500</button>
+          </div>
+
+          <!-- INPUT MANUALE -->
+          <div id="manual-reps-container">
+            <input
+              type="number"
+              id="manual-reps-input"
+              class="manual-input"
+              placeholder="Inserisci reps manualmente..."
+              min="1"
+              max="10000"
+            />
+            <button class="manual-btn" onclick="ProtoxTracker.addManualReps()">
+              AGGIUNGI
+            </button>
+          </div>
+
+          <!-- STATS PROTOX -->
+          <div id="protox-stats"></div>
+        </div>
+
+        <!-- AZIONI -->
+        <div id="actions-section">
+            <!-- SEARCH BAR + ADD BUTTON -->
+            <div id="actions-toolbar">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text"
+                           id="action-search"
+                           class="search-input"
+                           placeholder="Cerca azione..."
+                           oninput="CustomActions.onSearch(this.value)"
+                           autocomplete="off">
+                    <button class="search-clear hidden" id="search-clear" onclick="CustomActions.clearSearch()">✕</button>
+                </div>
+                <button class="toggle-actions-btn" id="toggle-actions-btn" onclick="CustomActions.toggleVisibility()">
+                    <span id="toggle-icon">▼</span>
+                </button>
+                <button class="add-action-btn" onclick="CustomActions.showCreatePopup()">
+                    <span>+</span>
+                </button>
+            </div>
+
+          <!-- FILTRI -->
+          <div id="action-filters">
+            <button
+              class="filter-btn active"
+              data-filter="all"
+              onclick="CustomActions.setFilter('all')"
+            >
+              Tutte
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="positive"
+              onclick="CustomActions.setFilter('positive')"
+            >
+              ✅ Positive
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="negative"
+              onclick="CustomActions.setFilter('negative')"
+            >
+              ❌ Negative
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="body"
+              onclick="CustomActions.setFilter('body')"
+            >
+              💪
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="mind"
+              onclick="CustomActions.setFilter('mind')"
+            >
+              🧠
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="will"
+              onclick="CustomActions.setFilter('will')"
+            >
+              🔥
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="soul"
+              onclick="CustomActions.setFilter('soul')"
+            >
+              🕉️
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="custom"
+              onclick="CustomActions.setFilter('custom')"
+            >
+              ⭐
+            </button>
+          </div>
+
+          <!-- LISTA AZIONI -->
+          <div id="actions-list"></div>
+        </div>
+
+        <!-- LOG -->
+        <div id="log-section">
+          <h2>📜 ATTIVITÀ RECENTI</h2>
+          <div id="action-log"></div>
+        </div>
+      </div>
+      <!-- ============================================
+         PAGINA MISSIONI
+         ============================================ -->
+      <div class="page page-hidden" id="page-missions">
+        <div class="page-header">
+          <h2>🎯 MISSIONI</h2>
+          <p class="page-subtitle">3 missioni ogni giorno</p>
+        </div>
+
+        <!-- MISSIONI GIORNALIERE -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>📋 Missioni di Oggi</h3>
+            <div id="missions-bonus"></div>
+          </div>
+          <div id="missions-list"></div>
+        </div>
+
+        <!-- ACHIEVEMENTS -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>🏆 Badge</h3>
+            <span id="badges-count" class="badge-counter">0/0</span>
+          </div>
+          <div id="badges-grid"></div>
+        </div>
+      </div>
+
+      <!-- ============================================
+         PAGINA TIMER
+         ============================================ -->
+      <div class="page page-hidden" id="page-timer">
+        <div class="page-header">
+          <h2>⏱️ TIMER</h2>
+          <p class="page-subtitle">Sessioni di allenamento</p>
+        </div>
+
+        <!-- TIMER ALLENAMENTO -->
+        <div class="section-card">
+          <h3>🏋️ Sessione Allenamento</h3>
+          <div id="timer-section-content"></div>
+        </div>
+
+        <!-- FOCUS MODE -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>🎯 Focus Mode</h3>
+            <span class="section-badge">+50 XP</span>
+          </div>
+          <div id="focus-content"></div>
+        </div>
+      </div>
+
+      <!-- ============================================
+         PAGINA STATS
+         ============================================ -->
+      <div class="page page-hidden" id="page-stats">
+        <div class="page-header">
+          <h2>📊 STATISTICHE</h2>
+          <p class="page-subtitle">I tuoi progressi</p>
+        </div>
+
+        <div id="stats-detail"></div>
+      </div>
+
+      <!-- ============================================
+         PAGINA PROFILO
+         ============================================ -->
+      <div class="page page-hidden" id="page-profile">
+        <div class="page-header">
+          <h2>👤 PROFILO</h2>
+          <p class="page-subtitle">Il tuo personaggio</p>
+        </div>
+
+        <div id="profile-content"></div>
+      </div>
+
+                <!-- ============================================
+         PAGINA FEEDBACK
+         ============================================ -->
+    <div class="page page-hidden" id="page-feedback">
+
+        <div class="page-header">
+            <h2>💬 FEEDBACK</h2>
+            <p class="page-subtitle">Aiutaci a migliorare Protox</p>
+        </div>
+
+        <div id="feedback-content"></div>
+
+    </div>
+    </div>
+
+    <!-- ============================================
+     TAB BAR (navigazione)
+     ============================================ -->
+<nav id="tab-bar">
+    <button class="tab-btn tab-active" id="tab-home" onclick="Navigation.goTo('home')">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">Home</span>
+    </button>
+    <button class="tab-btn" id="tab-missions" onclick="Navigation.goTo('missions')">
+        <span class="tab-icon">🎯</span>
+        <span class="tab-label">Missioni</span>
+    </button>
+    <button class="tab-btn" id="tab-timer" onclick="Navigation.goTo('timer')">
+        <span class="tab-icon">⏱️</span>
+        <span class="tab-label">Timer</span>
+    </button>
+    <button class="tab-btn" id="tab-stats" onclick="Navigation.goTo('stats')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Stats</span>
+    </button>
+    <button class="tab-btn" id="tab-feedback" onclick="Navigation.goTo('feedback')">
+        <span class="tab-icon">💬</span>
+        <span class="tab-label">Feedback</span>
+    </button>
+    <button class="tab-btn" id="tab-profile" onclick="Navigation.goTo('profile')">
+        <span class="tab-icon">👤</span>
+        <span class="tab-label">Profilo</span>
+    </button>
+</nav>
+
+    <!-- ============================================
+     LEVEL UP POPUP
+     ============================================ -->
+    <div id="levelup-popup" class="hidden">
+      <div id="levelup-content">
+        <h1>⚡ LEVEL UP!</h1>
+        <p id="levelup-text">Sei ora Level 2</p>
+        <button onclick="closeLevelUp()">CONTINUA</button>
+      </div>
+    </div>
+
+    <!-- SCRIPTS - Ordine IMPORTANTE -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="modules/storage.js"></script>
+    <script src="modules/sounds.js"></script>
+    <script src="modules/particles.js"></script>
+    <script src="modules/dark-light.js"></script>
+    <script src="modules/xp-multiplier.js"></script>
+    <script src="modules/records.js"></script>
+    <script src="modules/achievements.js"></script>
+    <script src="modules/missions.js"></script>
+    <script src="modules/protox-tracker.js"></script>
+    <script src="modules/timer.js"></script>
+    <script src="modules/focus-mode.js"></script>
+    <script src="modules/profile.js"></script>
+    <script src="modules/daily-reset.js"></script>
+    <script src="modules/notifications.js"></script>
+    <script src="modules/feedback.js"></script>
+    <script src="modules/navigation.js"></script>
+    <script src="modules/custom-actions.js"></script>
+    <script src="modules/player-stats.js"></script>
+
+    <!-- PWA Service Worker -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .then((reg) => {
+            console.log("⚡ Service Worker registrato");
+            // Forza aggiornamento
+            reg.update();
+          })
+          .catch((err) => console.log("SW errore:", err));
+
+        // Quando nuovo SW disponibile, attivalo subito
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          console.log("Nuovo Service Worker attivo");
+        });
+      }
+
+      // Forza theme color
+      function updateThemeColor() {
+        const metas = document.querySelectorAll('meta[name="theme-color"]');
+        metas.forEach((m) => m.setAttribute("content", "#080810"));
+      }
+      updateThemeColor();
+    </script>
+  </body>
+</html>

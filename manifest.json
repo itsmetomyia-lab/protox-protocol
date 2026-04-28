@@ -1,0 +1,54 @@
+{
+    "id": "/index.html",
+    "name": "PROTOX PROTOCOL",
+    "short_name": "PROTOX",
+    "description": "Life RPG - 90 giorni per diventare la versione migliore di te",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#080810",
+    "theme_color": "#080810",
+    "orientation": "portrait",
+    "display_override": ["standalone", "window-controls-overlay"],
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/screenshot-mobile.png",
+            "sizes": "480x850",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "PROTOX PROTOCOL - Home"
+        },
+        {
+            "src": "icons/screenshot-desktop.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "PROTOX PROTOCOL - Desktop"
+        }
+    ]
+}
