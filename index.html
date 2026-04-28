@@ -234,12 +234,18 @@
           <div id="actions-list"></div>
         </div>
 
-        <!-- LOG -->
-        <div id="log-section">
-          <h2>📜 ATTIVITÀ RECENTI</h2>
-          <div id="action-log"></div>
-        </div>
+        <!-- PLANNER BUTTON -->
+      <div id="planner-button-section">
+          <button class="planner-open-btn" onclick="Navigation.goTo('planner')">
+              <span class="planner-btn-icon">📅</span>
+              <div class="planner-btn-info">
+                  <span class="planner-btn-title">PLANNER 90 GIORNI</span>
+                  <span class="planner-btn-desc">Programma e rivedi le tue giornate</span>
+              </div>
+              <span class="planner-btn-arrow">→</span>
+          </button>
       </div>
+    </div>
       <!-- ============================================
          PAGINA MISSIONI
          ============================================ -->
@@ -317,6 +323,21 @@
         <div id="profile-content"></div>
       </div>
 
+
+          <!-- ============================================
+         PAGINA PLANNER
+         ============================================ -->
+    <div class="page page-hidden" id="page-planner">
+
+        <div class="page-header">
+            <h2>📅 PLANNER</h2>
+            <p class="page-subtitle">I tuoi 90 giorni</p>
+        </div>
+
+        <div id="planner-content"></div>
+
+    </div>
+
                 <!-- ============================================
          PAGINA FEEDBACK
          ============================================ -->
@@ -351,6 +372,10 @@
     <button class="tab-btn" id="tab-stats" onclick="Navigation.goTo('stats')">
         <span class="tab-icon">📊</span>
         <span class="tab-label">Stats</span>
+    </button>
+    <button class="tab-btn" id="tab-planner" onclick="Navigation.goTo('planner')">
+        <span class="tab-icon">📅</span>
+        <span class="tab-label">Planner</span>
     </button>
     <button class="tab-btn" id="tab-feedback" onclick="Navigation.goTo('feedback')">
         <span class="tab-icon">💬</span>
@@ -390,11 +415,12 @@
     <script src="modules/daily-reset.js"></script>
     <script src="modules/notifications.js"></script>
     <script src="modules/feedback.js"></script>
+    <script src="modules/planner.js"></script>
     <script src="modules/navigation.js"></script>
     <script src="modules/custom-actions.js"></script>
     <script src="modules/player-stats.js"></script>
 
-    <!-- PWA Service Worker -->
+    <!-- PWA git init Worker -->
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
