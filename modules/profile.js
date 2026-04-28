@@ -210,14 +210,113 @@ const Profile = {
     },
     // Cambia nome
     changeName() {
-        const newName = prompt('Nuovo nome:');
-        if (newName && newName.trim().length > 0) {
-            const player = loadPlayer();
-            player.name = newName.trim();
-            Storage.save('player', player);
-            this.updateName();
-            showMessage(`Nome cambiato in ${newName.trim()}!`, 'positive');
+        const popup = document.createElement('div');
+        popup.id = 'changename-popup';
+        
+        const player = loadPlayer();
+        
+        popup.innerHTML = `
+            <div class="changename-container">
+                <div class="changename-header">
+                    <h2>CAMBIA NOME</h2>
+                    <button class="changename-close" onclick="Profile.closeChangeName()">✕</button>
+                </div>
+
+                <div class="changename-current">
+                    <span class="changename-label">NOME ATTUALE</span>
+                    <span class="changename-value">${player.name || 'Player'}</span>
+                </div>
+
+                <div class="changename-avatar">
+                    ${this.getAvatarEmoji(player.level)}
+                </div>
+
+                <div class="changename-field">
+                    <label>NUOVO NOME</label>
+                    <input type="text"
+                           id="new-name-input"
+                           class="changename-input"
+                           placeholder="Chi vuoi diventare?"
+                           maxlength="20"
+                           autocomplete="off"
+                           value=""
+                           oninput="Profile.checkNewName()">
+                    <div class="changename-charcount">
+                        <span id="name-char-count">0</span>/20
+                    </div>
+                </div>
+
+                <button class="changename-submit disabled" id="changename-btn" onclick="Profile.submitNewName()">
+                    CAMBIA IDENTITÀ ⚡
+                </button>
+
+                <p class="changename-note">Il tuo nome è solo per te. Nessuno lo vede.</p>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        document.body.style.overflow = 'hidden';
+
+        // Focus input
+        setTimeout(() => {
+            document.getElementById('new-name-input')?.focus();
+        }, 300);
+    },
+
+    checkNewName() {
+        const input = document.getElementById('new-name-input');
+        const btn = document.getElementById('changename-btn');
+        const counter = document.getElementById('name-char-count');
+
+        if (!input || !btn) return;
+
+        const value = input.value.trim();
+        if (counter) counter.textContent = input.value.length;
+
+        if (value.length >= 2) {
+            btn.classList.remove('disabled');
+        } else {
+            btn.classList.add('disabled');
         }
+    },
+
+    submitNewName() {
+        const input = document.getElementById('new-name-input');
+        if (!input) return;
+
+        const newName = input.value.trim();
+        if (newName.length < 2) {
+            showMessage('Almeno 2 caratteri!', 'warning');
+            return;
+        }
+
+        const player = loadPlayer();
+        const oldName = player.name;
+        player.name = newName;
+        Storage.save('player', player);
+
+        // Animazione
+        const container = document.querySelector('.changename-container');
+        if (container) {
+            container.style.animation = 'nameChangeFlash 0.5s ease';
+        }
+
+        setTimeout(() => {
+            this.closeChangeName();
+            this.updateName();
+            updateUI(player);
+            showMessage(`${oldName} → ${newName}`, 'positive');
+
+            if (typeof Particles !== 'undefined') {
+                Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
+            }
+        }, 500);
+    },
+
+    closeChangeName() {
+        const popup = document.getElementById('changename-popup');
+        if (popup) popup.remove();
+        document.body.style.overflow = '';
     },
 
     // Renderizza profilo

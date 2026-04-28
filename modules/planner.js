@@ -323,14 +323,48 @@ const Planner = {
 
         // PIANIFICAZIONE (futuro + oggi)
         if (isFuture || isToday) {
+            const allActions = typeof CustomActions !== 'undefined'
+                ? CustomActions.getAllActions().filter(a => a.type === 'positive')
+                : [];
+
             html += `
                 <div class="day-planner-section">
                     <h4>📋 Pianifica</h4>
-                    <div class="day-add-planned">
+
+                    <!-- SEARCH AZIONI -->
+                    <div class="plan-search-container">
                         <input type="text"
-                               id="planned-input-${dayNum}"
+                               id="plan-search-${dayNum}"
+                               class="plan-search-input"
+                               placeholder="🔍 Cerca azione da pianificare..."
+                               oninput="Planner.filterPlanActions(${dayNum}, this.value)"
+                               autocomplete="off">
+                    </div>
+
+                    <!-- LISTA AZIONI DA AGGIUNGERE -->
+                    <div class="plan-actions-list" id="plan-actions-${dayNum}">
+                        ${allActions.map(a => {
+                            const alreadyPlanned = dayData.planned.some(p => p.text === a.name);
+                            return `
+                                <button class="plan-action-item ${alreadyPlanned ? 'already-planned' : ''}"
+                                        onclick="${alreadyPlanned ? '' : `Planner.addActionToPlan(${dayNum}, '${a.name}', '${a.icon}')`}"
+                                        data-name="${a.name.toLowerCase()}"
+                                        ${alreadyPlanned ? 'disabled' : ''}>
+                                    <span class="plan-action-icon">${a.icon}</span>
+                                    <span class="plan-action-name">${a.name}</span>
+                                    <span class="plan-action-xp">+${a.xp}</span>
+                                    ${alreadyPlanned ? '<span class="plan-action-added">✓</span>' : '<span class="plan-action-add">+</span>'}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- CUSTOM (input manuale) -->
+                    <div class="plan-custom-add">
+                        <input type="text"
+                               id="plan-custom-${dayNum}"
                                class="planned-input"
-                               placeholder="Aggiungi attività..."
+                               placeholder="Oppure scrivi attività personalizzata..."
                                maxlength="50"
                                onkeydown="if(event.key==='Enter')Planner.addFromInput(${dayNum})">
                         <button class="planned-add-btn" onclick="Planner.addFromInput(${dayNum})">+</button>
@@ -340,17 +374,21 @@ const Planner = {
         }
 
         // AZIONI PIANIFICATE (mostra sempre se ce ne sono)
-        if (dayData.planned && dayData.planned.length > 0) {
+         if (dayData.planned && dayData.planned.length > 0) {
             html += '<div class="day-planned-list">';
             if (!isFuture && !isToday) {
                 html += '<h4>📋 Pianificate</h4>';
+            } else {
+                html += '<h4>📋 Pianificate per questo giorno</h4>';
             }
             dayData.planned.forEach(action => {
+                const icon = action.icon || '📌';
                 html += `
                     <div class="planned-item ${action.done ? 'planned-done' : ''}">
                         <button class="planned-check" onclick="Planner.toggleAndRefresh(${dayNum}, '${action.id}')">
                             ${action.done ? '☑️' : '⬜'}
                         </button>
+                        <span class="planned-icon">${icon}</span>
                         <span class="planned-text">${action.text}</span>
                         <button class="planned-remove" onclick="Planner.removeAndRefresh(${dayNum}, '${action.id}')">✕</button>
                     </div>
@@ -376,7 +414,7 @@ const Planner = {
 
     // Aggiungi da input
     addFromInput(dayNum) {
-        const input = document.getElementById(`planned-input-${dayNum}`);
+        const input = document.getElementById(`plan-custom-${dayNum}`);
         if (!input) return;
 
         const text = input.value.trim();
@@ -384,7 +422,7 @@ const Planner = {
 
         this.addPlannedAction(dayNum, text);
         input.value = '';
-        this.openDay(dayNum); // Refresh
+        this.openDay(dayNum);
     },
 
     // Toggle e refresh
@@ -403,5 +441,50 @@ const Planner = {
     closeDay() {
         const detail = document.getElementById('day-detail');
         if (detail) detail.classList.add('hidden');
+    },
+
+
+        // Aggiungi azione esistente al piano
+    addActionToPlan(dayNum, actionName, actionIcon) {
+        const data = this.loadDayData(dayNum);
+        
+        // Check se già pianificata
+        if (data.planned.some(p => p.text === actionName)) {
+            showMessage('Già pianificata!', 'warning');
+            return;
+        }
+
+        data.planned.push({
+            id: 'plan_' + Date.now(),
+            text: actionName,
+            icon: actionIcon,
+            done: false,
+            createdAt: Date.now()
+        });
+        this.saveDayData(dayNum, data);
+        this.openDay(dayNum);
+        showMessage(`${actionIcon} ${actionName} pianificata`, 'positive');
+    },
+
+    // Filtra azioni nel planner
+    filterPlanActions(dayNum, query) {
+        const container = document.getElementById(`plan-actions-${dayNum}`);
+        if (!container) return;
+
+        const items = container.querySelectorAll('.plan-action-item');
+        const q = query.toLowerCase().trim();
+
+        items.forEach(item => {
+            const name = item.dataset.name;
+            if (!q || name.includes(q)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
+    
 };
+
+
+
