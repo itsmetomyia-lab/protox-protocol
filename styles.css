@@ -2799,10 +2799,14 @@ html, body {
 
 .color-picker-hidden {
     position: absolute;
-    width: 0;
-    height: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     opacity: 0;
-    pointer-events: none;
+    cursor: pointer;
+    border: none;
+    padding: 0;
 }
 
 .theme-custom-btn {
@@ -3282,21 +3286,24 @@ body.theme-custom {
 /* Disclaimer */
 .onboard-disclaimer {
     text-align: left;
-    max-height: 45vh;
+    max-height: 40vh;
     overflow-y: auto;
-    padding-right: 5px;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 8px;
     margin-bottom: 16px;
     scrollbar-width: thin;
     scrollbar-color: var(--purple-dark) transparent;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
 }
 
 .onboard-disclaimer::-webkit-scrollbar {
-    width: 3px;
+    width: 4px;
 }
 
 .onboard-disclaimer::-webkit-scrollbar-thumb {
     background: var(--purple-dark);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .disclaimer-section {

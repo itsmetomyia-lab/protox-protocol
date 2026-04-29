@@ -51,16 +51,24 @@ const Feedback = {
             textarea.focus();
         }
 
-        // Abilita bottone
+        // Check subito
         this.checkReady();
     },
 
     // Controlla se pronto per inviare
     checkReady() {
-        const message = document.getElementById('feedback-message')?.value?.trim();
+        const message = document.getElementById('feedback-message');
         const btn = document.getElementById('feedback-send-btn');
 
-        if (this.selectedType && message && message.length >= 10 && !this.isSending) {
+        if (!message || !btn) return;
+
+        const text = message.value ? message.value.trim() : '';
+        const hasType = this.selectedType !== null && this.selectedType !== undefined;
+        const hasMessage = text.length >= 10;
+
+        console.log('Check ready:', { hasType, hasMessage, type: this.selectedType, len: text.length });
+
+        if (hasType && hasMessage && !this.isSending) {
             btn.classList.add('ready');
             btn.disabled = false;
         } else {

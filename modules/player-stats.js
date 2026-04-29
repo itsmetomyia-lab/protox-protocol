@@ -411,6 +411,37 @@ function showMessage(text, type) {
     }, 2000);
 }
 
+function openColorPicker() {
+    const picker = document.getElementById('custom-color-picker');
+    if (!picker) return;
+
+    // iOS fix: creiamo un nuovo input ogni volta
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+        const tempPicker = document.createElement('input');
+        tempPicker.type = 'color';
+        tempPicker.value = picker.value;
+        tempPicker.style.cssText = 'position:fixed;top:-100px;left:-100px;opacity:0;';
+        document.body.appendChild(tempPicker);
+
+        tempPicker.addEventListener('input', (e) => {
+            applyCustomColor(e.target.value);
+            picker.value = e.target.value;
+        });
+
+        tempPicker.addEventListener('change', (e) => {
+            applyCustomColor(e.target.value);
+            picker.value = e.target.value;
+            setTimeout(() => tempPicker.remove(), 100);
+        });
+
+        tempPicker.click();
+    } else {
+        picker.click();
+    }
+}
+
 // ---- THEME SYSTEM ----
 function setTheme(theme) {
     // Rimuovi tutti i temi

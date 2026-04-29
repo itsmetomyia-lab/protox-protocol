@@ -134,13 +134,29 @@ const Profile = {
             return false;
         };
 
-        overlay.addEventListener('touchmove', blockAll, { passive: false });
-        overlay.addEventListener('wheel', blockAll, { passive: false });
-        overlay.addEventListener('scroll', blockAll, { passive: false });
-        document.addEventListener('touchmove', blockAll, { passive: false });
-        document.addEventListener('wheel', blockAll, { passive: false });
+        // Blocca scroll SOLO sul body, NON sull'overlay interno
+        const blockBodyScroll = function(e) {
+            // Permetti scroll dentro il disclaimer
+            const disclaimer = document.querySelector('.onboard-disclaimer');
+            if (disclaimer && disclaimer.contains(e.target)) {
+                return; // Lascia scrollare
+            }
 
-        window._onboardBlockAll = blockAll;
+            // Permetti scroll dentro l'input
+            const input = document.getElementById('onboard-name');
+            if (input && input.contains(e.target)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+
+        overlay.addEventListener('touchmove', blockBodyScroll, { passive: false });
+        document.addEventListener('touchmove', blockBodyScroll, { passive: false });
+
+        window._onboardBlockAll = blockBodyScroll;
     },
     // Prossimo step onboarding
     nextStep(step) {

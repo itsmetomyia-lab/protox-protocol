@@ -81,8 +81,8 @@
                 <span class="theme-dot gold-dot"></span>
             </button>
             <div class="theme-custom-wrapper">
-                <input type="color" id="custom-color-picker" class="color-picker-hidden" value="#8b5cf6" onchange="applyCustomColor(this.value)">
-                <button class="theme-btn theme-custom-btn" onclick="document.getElementById('custom-color-picker').click()" id="theme-custom">
+                <input type="color" id="custom-color-picker" class="color-picker-hidden" value="#8b5cf6" oninput="applyCustomColor(this.value)" onchange="applyCustomColor(this.value)">
+                <button class="theme-btn theme-custom-btn" id="theme-custom" onclick="openColorPicker()">
                     <span class="theme-dot custom-dot">🎨</span>
                 </button>
             </div>
