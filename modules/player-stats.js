@@ -316,6 +316,11 @@ function updateUI(player) {
     if (repsEl) repsEl.textContent = player.reps.toLocaleString();
     if (levelEl) levelEl.textContent = `LEVEL ${player.level} — ${player.title}`;
 
+        // Protocol name
+    const protocolName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
+    const headerH1 = document.querySelector('#header h1');
+    if (headerH1) headerH1.textContent = `⚡ ${protocolName}`;
+
     // XP Bar
     const nextLevelXP = getNextLevelXP(player.level);
     const currentLevelXP = LEVELS.find(l => l.level === player.level)?.xpRequired || 0;
@@ -591,6 +596,12 @@ window.onload = function() {
     if (typeof Navigation !== 'undefined') {
         Navigation.init();
     }
+
+        // Check changelog
+    if (typeof Changelog !== 'undefined') {
+        Changelog.checkOnLoad();
+    }
+
         // Render azioni
     if (typeof CustomActions !== 'undefined') {
         CustomActions.renderActions();

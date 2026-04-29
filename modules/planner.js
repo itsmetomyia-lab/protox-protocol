@@ -159,6 +159,7 @@ const Planner = {
         return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
     },
 
+
     // ---- RENDER GRIGLIA 90 GIORNI ----
     render() {
         const container = document.getElementById('planner-content');
@@ -482,6 +483,35 @@ const Planner = {
                 item.style.display = 'none';
             }
         });
+    },
+
+
+    // Apri planner overlay
+    open() {
+        const overlay = document.getElementById('planner-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        this.render();
+
+        if (typeof SoundSystem !== 'undefined') {
+            SoundSystem.playClick();
+        }
+    },
+
+    // Chiudi planner overlay
+    close() {
+        const overlay = document.getElementById('planner-overlay');
+        if (!overlay) return;
+
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+
+        if (typeof SoundSystem !== 'undefined') {
+            SoundSystem.playClick();
+        }
     }
     
 };

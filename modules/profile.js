@@ -341,9 +341,12 @@ const Profile = {
         if (!container) return;
 
         const player = loadPlayer();
-        const records = Records.load();
-        const countdown = Records.get90DayCountdown();
-        const badges = Achievements.getCount();
+        const records = typeof Records !== 'undefined' ? Records.load() : { maxStreak: 0 };
+        const countdown = typeof Records !== 'undefined' ? Records.get90DayCountdown() : { day: 0 };
+        const badges = typeof Achievements !== 'undefined' ? Achievements.getCount() : { unlocked: 0, total: 0 };
+        const soundOn = typeof SoundSystem !== 'undefined' ? SoundSystem.isEnabled() : false;
+        const notifOn = typeof Notifications !== 'undefined' ? Notifications.isEnabled() : false;
+
 
         container.innerHTML = `
             <div class="profile-header">
@@ -364,7 +367,7 @@ const Profile = {
                 </div>
                 <div class="profile-stat">
                     <span class="ps-big">${player.streak}</span>
-                    <span class="ps-label">Streak Attuale</span>
+                    <span class="ps-label">Streak</span>
                 </div>
                 <div class="profile-stat">
                     <span class="ps-big">${records.maxStreak}</span>
@@ -378,22 +381,46 @@ const Profile = {
                     <span class="ps-big">${countdown.day}/90</span>
                     <span class="ps-label">Giorno</span>
                 </div>
+                <div class="profile-stat" onclick="if(typeof Friends!=='undefined')Friends.open()" style="cursor:pointer">
+                    <span class="ps-big">${typeof Friends !== 'undefined' ? Friends.getCount() : 0}</span>
+                    <span class="ps-label">Amici</span>
+                </div>
             </div>
 
             <div class="profile-section">
-                <h3>⚙️ Impostazioni</h3>
+                <h3>⚙️ IMPOSTAZIONI</h3>
                 <div class="profile-option" onclick="Profile.changeName()">
                     <span>✏️ Cambia Nome</span>
-                    <span>→</span>
+                    <span>${player.name || 'Player'}</span>
                 </div>
-                <div class="profile-option" onclick="SoundSystem.toggle()">
+                <div class="profile-option" onclick="Profile.changeProtocolName()">
+                    <span>⚡ Nome Protocollo</span>
+                    <span>${Storage.load('protocol_name') || 'PROTOX PROTOCOL'}</span>
+                </div>
+                <div class="profile-option" onclick="if(typeof SoundSystem!=='undefined')SoundSystem.toggle()">
                     <span>🔊 Suoni</span>
-                    <span id="sound-status">${SoundSystem.isEnabled() ? 'ON' : 'OFF'}</span>
+                    <span id="sound-status">${soundOn ? 'ON' : 'OFF'}</span>
                 </div>
-                <div class="profile-option" onclick="Notifications.toggle()">
+                <div class="profile-option" onclick="if(typeof Notifications!=='undefined')Notifications.toggle()">
                     <span>🔔 Notifiche</span>
-                    <span id="notif-status">OFF</span>
+                    <span id="notif-status">${notifOn ? 'ON' : 'OFF'}</span>
                 </div>
+                <div class="profile-option" onclick="if(typeof Friends!=='undefined')Friends.open()">
+                    <span>👥 Amici</span>
+                    <span>${typeof Friends !== 'undefined' ? Friends.getCount() : 0} amici</span>
+                </div>
+                <div class="profile-option" onclick="if(typeof Friends!=='undefined')Friends.copyId()">
+                    <span>🆔 Il tuo Codice</span>
+                    <span>${typeof Friends !== 'undefined' ? Friends.getMyId() : '...'}</span>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="profile-section-header">
+                    <h3>📋 CHANGELOG</h3>
+                    <span class="changelog-version-current">v${typeof Changelog !== 'undefined' ? Changelog.getLatestVersion() : '1.0.0'}</span>
+                </div>
+                <div id="changelog-section"></div>
             </div>
 
             <div class="profile-danger">
@@ -401,6 +428,13 @@ const Profile = {
                 <p class="danger-text">Cancella tutti i progressi</p>
             </div>
         `;
+
+        // Render changelog dopo che il DOM è pronto
+        setTimeout(() => {
+            if (typeof Changelog !== 'undefined') {
+                Changelog.render();
+            }
+        }, 100);
     },
 
     // Avatar basato su livello
@@ -496,4 +530,97 @@ const Profile = {
             location.reload();
         }, 600);
     },
+
+        changeProtocolName() {
+        const popup = document.createElement('div');
+        popup.id = 'changename-popup';
+
+        const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
+
+        popup.innerHTML = `
+            <div class="changename-container">
+                <div class="changename-header">
+                    <h2>NOME PROTOCOLLO</h2>
+                    <button class="changename-close" onclick="Profile.closeProtocolName()">✕</button>
+                </div>
+
+                <div class="changename-current">
+                    <span class="changename-label">NOME ATTUALE</span>
+                    <span class="changename-value">${currentName}</span>
+                </div>
+
+                <div class="changename-avatar">⚡</div>
+
+                <div class="changename-field">
+                    <label>NUOVO NOME</label>
+                    <input type="text"
+                           id="protocol-name-input"
+                           class="changename-input"
+                           placeholder="Il nome del tuo protocollo..."
+                           maxlength="25"
+                           autocomplete="off"
+                           value=""
+                           oninput="Profile.checkProtocolName()">
+                    <div class="changename-charcount">
+                        <span id="protocol-char-count">0</span>/25
+                    </div>
+                </div>
+
+                <button class="changename-submit disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
+                    RINOMINA ⚡
+                </button>
+
+                <p class="changename-note">Questo nome apparirà nell'header dell'app</p>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+            document.getElementById('protocol-name-input')?.focus();
+        }, 300);
+    },
+
+    checkProtocolName() {
+        const input = document.getElementById('protocol-name-input');
+        const btn = document.getElementById('protocol-name-btn');
+        const counter = document.getElementById('protocol-char-count');
+
+        if (!input || !btn) return;
+
+        if (counter) counter.textContent = input.value.length;
+
+        if (input.value.trim().length >= 3) {
+            btn.classList.remove('disabled');
+        } else {
+            btn.classList.add('disabled');
+        }
+    },
+
+    submitProtocolName() {
+        const input = document.getElementById('protocol-name-input');
+        if (!input || input.value.trim().length < 3) return;
+
+        const newName = input.value.trim().toUpperCase();
+        Storage.save('protocol_name', newName);
+
+        // Aggiorna header
+        const header = document.querySelector('#header h1');
+        if (header) header.textContent = `⚡ ${newName}`;
+
+        this.closeProtocolName();
+        showMessage(`Protocollo rinominato: ${newName}`, 'positive');
+
+        if (typeof Particles !== 'undefined') {
+            Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
+        }
+    },
+
+    closeProtocolName() {
+        const popup = document.getElementById('changename-popup');
+        if (popup) popup.remove();
+        document.body.style.overflow = '';
+    },
+    
 };

@@ -8,7 +8,7 @@ const Navigation = {
 
     currentPage: 'home',
 
-    pages: ['home', 'missions', 'timer', 'stats', 'feedback', 'profile', 'planner'],
+    pages: ['home', 'missions', 'timer', 'stats', 'feedback', 'profile'],
 
     goTo(page) {
         if (!this.pages.includes(page)) return;
@@ -57,10 +57,6 @@ const Navigation = {
                     checkTodayActions();
                     if (typeof XPMultiplier !== 'undefined') XPMultiplier.render();
                 } catch(e) { console.error('Home error:', e); }
-                break;
-            
-            case 'planner':
-                if (typeof Planner !== 'undefined') Planner.render();
                 break;
 
             case 'missions':

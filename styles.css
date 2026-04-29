@@ -4475,4 +4475,852 @@ body.theme-custom {
     100% { box-shadow: 0 0 0 var(--purple-glow); opacity: 0; transform: scale(0.95); }
 }
 
+/* ============================================
+   PLANNER OVERLAY
+   ============================================ */
 
+#planner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-main);
+    z-index: 500;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: plannerSlideIn 0.3s ease;
+}
+
+@keyframes plannerSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#planner-panel {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 40px;
+}
+
+.planner-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.planner-panel-header h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: white;
+    letter-spacing: 2px;
+}
+
+.planner-panel-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    flex: 1;
+}
+
+.planner-close-btn {
+    position: absolute;
+    right: 0;
+    top: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.planner-close-btn:hover {
+    border-color: var(--red-neg);
+    color: var(--red-neg);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.planner-close-btn:active {
+    transform: scale(0.9);
+}
+
+/* Fix: assicura che il planner overlay copra la tab bar */
+#planner-overlay {
+    padding-bottom: 0;
+}
+
+/* Fix: contenuto planner scrollabile */
+#planner-content {
+    padding-bottom: 20px;
+}
+
+/* ============================================
+   CHANGELOG POPUP
+   ============================================ */
+
+#changelog-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(10px);
+    z-index: 7000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: changelogIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes changelogIn {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes changelogOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+.changelog-popup-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 380px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--purple-dark) transparent;
+}
+
+.changelog-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.changelog-badge {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.changelog-badge.launch {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--green-xp);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.changelog-badge.major {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple-main);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.changelog-badge.minor {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--yellow);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.changelog-popup-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.changelog-popup-close:hover {
+    border-color: var(--red-neg);
+    color: var(--red-neg);
+}
+
+.changelog-popup-version {
+    margin-bottom: 16px;
+}
+
+.changelog-popup-version h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: white;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.changelog-version-tag {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: var(--bg-input);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.changelog-popup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.changelog-popup-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.changelog-more {
+    text-align: center;
+    padding: 8px;
+    margin-bottom: 14px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.changelog-popup-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple-main));
+    border: none;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+    margin-bottom: 10px;
+}
+
+.changelog-popup-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px var(--purple-glow);
+}
+
+.changelog-popup-btn:active {
+    transform: scale(0.98);
+}
+
+.changelog-popup-note {
+    font-size: 0.65rem;
+    color: var(--text-xdim);
+    text-align: center;
+}
+
+/* ============================================
+   CHANGELOG IN PROFILO
+   ============================================ */
+
+.profile-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.profile-section-header h3 {
+    margin-bottom: 0 !important;
+}
+
+.changelog-version-current {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    color: var(--purple-main);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.changelog-card {
+    background: var(--bg-input);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.changelog-card-header {
+    margin-bottom: 10px;
+}
+
+.changelog-card-title h3 {
+    font-size: 0.85rem !important;
+    color: var(--text-main) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 6px !important;
+}
+
+.changelog-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.changelog-tag {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.changelog-tag.launch {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--green-xp);
+}
+
+.changelog-tag.major {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--purple-main);
+}
+
+.changelog-tag.minor {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--yellow);
+}
+
+.changelog-date {
+    font-size: 0.65rem;
+    color: var(--text-xdim);
+}
+
+.changelog-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.changelog-item {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    line-height: 1.4;
+}
+
+.changelog-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
+   FRIENDS OVERLAY
+   ============================================ */
+
+#friends-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-main);
+    z-index: 500;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: plannerSlideIn 0.3s ease;
+}
+
+#friends-panel {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 40px;
+}
+
+.friends-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.friends-panel-header h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: white;
+    letter-spacing: 2px;
+}
+
+.friends-panel-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    flex: 1;
+}
+
+.friends-close-btn {
+    position: absolute;
+    right: 0;
+    top: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.friends-close-btn:hover {
+    border-color: var(--red-neg);
+    color: var(--red-neg);
+}
+
+/* ID CARD */
+.friends-id-card {
+    background: var(--bg-card);
+    border: 1px solid var(--purple-main);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+    box-shadow: 0 0 20px var(--purple-glow);
+}
+
+.friends-id-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.friends-id-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.friends-id-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--purple-main);
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px var(--purple-glow);
+}
+
+.friends-id-copy {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--purple-main);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+}
+
+.friends-id-copy:hover {
+    background: var(--purple-main);
+    color: white;
+}
+
+.friends-id-note {
+    font-size: 0.7rem;
+    color: var(--text-xdim);
+}
+
+/* ADD FRIEND */
+.friends-add-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.friends-add-section h3,
+.friends-requests-section h3,
+.friends-list-section h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.friends-add-row {
+    display: flex;
+    gap: 8px;
+}
+
+.friends-add-input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text-main);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    outline: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.friends-add-input:focus {
+    border-color: var(--purple-main);
+}
+
+.friends-add-input::placeholder {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-xdim);
+}
+
+.friends-add-btn {
+    background: linear-gradient(135deg, var(--purple-dark), var(--purple-main));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 11px 18px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.friends-add-btn:active {
+    transform: scale(0.95);
+}
+
+/* REQUESTS */
+.friends-requests-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.friend-request-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.request-id {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-main);
+    flex: 1;
+}
+
+.request-status {
+    font-size: 0.7rem;
+    color: var(--yellow);
+}
+
+.request-test-btn {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--green-xp);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+/* FRIENDS LIST */
+.friends-list-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.friend-item:hover {
+    border-color: var(--purple-main);
+    background: rgba(139, 92, 246, 0.06);
+}
+
+.friend-item-avatar {
+    font-size: 1.5rem;
+}
+
+.friend-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.friend-item-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.friend-item-id {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    color: var(--text-xdim);
+    letter-spacing: 1px;
+}
+
+.friend-item-level {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: var(--purple-main);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.friend-item-arrow {
+    color: var(--text-xdim);
+}
+
+/* EMPTY STATE */
+.friends-empty {
+    text-align: center;
+    padding: 30px 15px;
+}
+
+.friends-empty-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.3;
+}
+
+.friends-empty p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+
+.friends-empty-hint {
+    color: var(--text-xdim) !important;
+    font-size: 0.75rem !important;
+    margin-top: 4px;
+}
+
+/* FRIEND PROFILE (placeholder) */
+.friend-profile-placeholder {
+    padding: 10px 0;
+}
+
+.friend-back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+}
+
+.friend-back-btn:hover {
+    border-color: var(--purple-main);
+    color: var(--purple-main);
+}
+
+.friend-profile-card {
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 16px;
+}
+
+.friend-avatar {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.friend-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    color: white;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+.friend-id-display {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: var(--text-xdim);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.friend-level-badge {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--purple-main);
+    background: rgba(139, 92, 246, 0.15);
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+
+.friend-coming-soon {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.coming-soon-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.friend-coming-soon h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    color: var(--purple-main);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+}
+
+.friend-coming-soon > p {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+}
+
+.coming-soon-list {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.coming-soon-item {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    padding: 6px 10px;
+    background: var(--bg-input);
+    border-radius: 6px;
+}
+
+.friend-remove-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 10px;
+    color: var(--red-neg);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.friend-remove-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* FOOTER NOTE */
+.friends-footer-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(139, 92, 246, 0.04);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    border-radius: 10px;
+}
+
+.friends-footer-note span {
+    font-size: 1.2rem;
+}
+
+.friends-footer-note p {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}

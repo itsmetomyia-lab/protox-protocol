@@ -16,14 +16,31 @@ const Notifications = {
     toggle() {
         if (this.isEnabled()) {
             Storage.save('notifications_enabled', false);
+            const statusEl = document.getElementById('notif-status');
+            if (statusEl) statusEl.textContent = 'OFF';
             showMessage('🔕 Notifiche disattivate', 'positive');
         } else {
-            this.requestPermission();
-        }
-        const statusEl = document.getElementById('notif-status');
-        if (statusEl) statusEl.textContent = this.isEnabled() ? 'ON' : 'OFF';
-    },
+            if (!('Notification' in window)) {
+                showMessage('Notifiche non supportate', 'warning');
+                return;
+            }
 
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    Storage.save('notifications_enabled', true);
+                    const statusEl = document.getElementById('notif-status');
+                    if (statusEl) statusEl.textContent = 'ON';
+                    showMessage('🔔 Notifiche attivate!', 'positive');
+                    this.scheduleReminders();
+                } else {
+                    Storage.save('notifications_enabled', false);
+                    const statusEl = document.getElementById('notif-status');
+                    if (statusEl) statusEl.textContent = 'OFF';
+                    showMessage('Permesso negato dal browser', 'warning');
+                }
+            });
+        }
+    },
     // Richiedi permesso
     requestPermission() {
         if (!('Notification' in window)) {
