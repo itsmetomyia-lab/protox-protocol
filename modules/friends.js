@@ -1,307 +1,612 @@
 // ============================================
 // PROTOX PROTOCOL - friends.js
-// Modulo: Sistema amicizie (UI + ID locale)
-// Versione: 1.0 (placeholder - backend in v2)
-// Dipende da: storage.js
+// Sistema amicizie REALE (Supabase Auth + Postgres)
+// Dipende da: storage.js, auth.js, cloud-sync.js (opzionale)
 // ============================================
 
 const Friends = {
+  _state: {
+    loading: false,
+    view: 'list', // list | friend
+    myProfile: null,
+    friends: [],
+    incoming: [],
+    outgoing: [],
+    friendProfile: null
+  },
 
-    // Genera o carica ID utente
-    getMyId() {
-        let id = Storage.load('user_id');
-        if (!id) {
-            id = this.generateId();
-            Storage.save('user_id', id);
-        }
-        return id;
-    },
+  // Compat: Profile.render() lo usa già
+  getMyId() {
+    // se loggato: friend_code cache
+    const code = Storage.load('friend_code');
+    if (code) return code;
 
-    // Genera ID random
-    generateId() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let id = 'PX-';
-        for (let i = 0; i < 8; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
-    },
-
-    // Carica lista amici (locale per ora)
-    loadFriends() {
-        return Storage.load('friends_list') || [];
-    },
-
-    // Salva lista amici
-    saveFriends(list) {
-        Storage.save('friends_list', list);
-    },
-
-    // Carica richieste pendenti
-    loadRequests() {
-        return Storage.load('friend_requests') || [];
-    },
-
-    // Conta amici
-    getCount() {
-        return this.loadFriends().length;
-    },
-
-    // Apri pagina amici (overlay come planner)
-    open() {
-        const overlay = document.createElement('div');
-        overlay.id = 'friends-overlay';
-        overlay.innerHTML = `
-            <div id="friends-panel">
-                <div class="friends-panel-header">
-                    <h2>👥 AMICI</h2>
-                    <p class="friends-panel-subtitle">Collabora e cresci insieme</p>
-                    <button class="friends-close-btn" onclick="Friends.close()">✕</button>
-                </div>
-                <div id="friends-content"></div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
-
-        this.render();
-    },
-
-    // Chiudi
-    close() {
-        const overlay = document.getElementById('friends-overlay');
-        if (overlay) {
-            overlay.style.animation = 'changelogOut 0.3s ease forwards';
-            setTimeout(() => {
-                overlay.remove();
-                document.body.style.overflow = '';
-            }, 300);
-        }
-    },
-
-    // Copia ID
-    copyId() {
-        const id = this.getMyId();
-        navigator.clipboard.writeText(id).then(() => {
-            showMessage('ID copiato! Condividilo con i tuoi amici', 'positive');
-        }).catch(() => {
-            // Fallback
-            const input = document.createElement('input');
-            input.value = id;
-            document.body.appendChild(input);
-            input.select();
-            document.execCommand('copy');
-            input.remove();
-            showMessage('ID copiato!', 'positive');
-        });
-    },
-
-    // Invia richiesta (placeholder)
-    sendRequest() {
-        const input = document.getElementById('friend-id-input');
-        if (!input) return;
-
-        const friendId = input.value.trim().toUpperCase();
-
-        if (!friendId) {
-            showMessage('Inserisci un ID!', 'warning');
-            return;
-        }
-
-        if (friendId === this.getMyId()) {
-            showMessage('Non puoi aggiungerti da solo bro 😂', 'warning');
-            return;
-        }
-
-        if (friendId.length < 11) {
-            showMessage('ID non valido!', 'warning');
-            return;
-        }
-
-        // Check se già amici
-        const friends = this.loadFriends();
-        if (friends.some(f => f.id === friendId)) {
-            showMessage('Siete già amici!', 'warning');
-            return;
-        }
-
-        // Per ora salva localmente come "pending"
-        const requests = this.loadRequests();
-        if (requests.some(r => r.id === friendId)) {
-            showMessage('Richiesta già inviata!', 'warning');
-            return;
-        }
-
-        requests.push({
-            id: friendId,
-            status: 'pending',
-            sentAt: Date.now()
-        });
-        Storage.save('friend_requests', requests);
-
-        input.value = '';
-        showMessage(`Richiesta inviata a ${friendId}! (Funzionalità completa in arrivo)`, 'positive');
-        this.render();
-    },
-
-    // Simula accetta amico (per test)
-    acceptTest(requestId) {
-        const requests = this.loadRequests();
-        const request = requests.find(r => r.id === requestId);
-        if (!request) return;
-
-        // Sposta da requests a friends
-        const friends = this.loadFriends();
-        friends.push({
-            id: request.id,
-            name: `Player_${request.id.slice(-4)}`,
-            addedAt: Date.now(),
-            level: Math.floor(Math.random() * 10) + 1
-        });
-        this.saveFriends(friends);
-
-        // Rimuovi dalla richiesta
-        const updated = requests.filter(r => r.id !== requestId);
-        Storage.save('friend_requests', updated);
-
-        showMessage('Amico aggiunto!', 'positive');
-        this.render();
-    },
-
-    // Rimuovi amico
-    removeFriend(friendId) {
-        const friends = this.loadFriends();
-        const friend = friends.find(f => f.id === friendId);
-        if (!friend) return;
-
-        if (!confirm(`Rimuovere ${friend.name} dagli amici?`)) return;
-
-        const updated = friends.filter(f => f.id !== friendId);
-        this.saveFriends(updated);
-
-        showMessage(`${friend.name} rimosso`, 'warning');
-        this.render();
-    },
-
-    // Apri profilo amico (placeholder viola)
-    openFriendProfile(friendId) {
-        const friends = this.loadFriends();
-        const friend = friends.find(f => f.id === friendId);
-        if (!friend) return;
-
-        const content = document.getElementById('friends-content');
-        if (!content) return;
-
-        content.innerHTML = `
-            <div class="friend-profile-placeholder">
-                <button class="friend-back-btn" onclick="Friends.render()">← Torna agli amici</button>
-
-                <div class="friend-profile-card">
-                    <div class="friend-avatar">👤</div>
-                    <h2 class="friend-name">${friend.name}</h2>
-                    <p class="friend-id-display">${friend.id}</p>
-                    <span class="friend-level-badge">Level ${friend.level}</span>
-                </div>
-
-                <div class="friend-coming-soon">
-                    <div class="coming-soon-icon">🚧</div>
-                    <h3>IN ARRIVO</h3>
-                    <p>In un prossimo aggiornamento potrai:</p>
-                    <div class="coming-soon-list">
-                        <div class="coming-soon-item">📊 Vedere le stats del tuo amico</div>
-                        <div class="coming-soon-item">🎯 Programmare sfide insieme</div>
-                        <div class="coming-soon-item">🏆 Competere in classifiche</div>
-                        <div class="coming-soon-item">💬 Mandare messaggi</div>
-                        <div class="coming-soon-item">🔥 Streak condivise</div>
-                    </div>
-                </div>
-
-                <button class="friend-remove-btn" onclick="Friends.removeFriend('${friend.id}')">
-                    🗑️ Rimuovi amico
-                </button>
-            </div>
-        `;
-    },
-
-    // Render principale
-    render() {
-        const content = document.getElementById('friends-content');
-        if (!content) return;
-
-        const myId = this.getMyId();
-        const friends = this.loadFriends();
-        const requests = this.loadRequests();
-
-        content.innerHTML = `
-            <!-- IL TUO ID -->
-            <div class="friends-id-card">
-                <div class="friends-id-label">IL TUO CODICE AMICO</div>
-                <div class="friends-id-display">
-                    <span class="friends-id-text">${myId}</span>
-                    <button class="friends-id-copy" onclick="Friends.copyId()">📋 Copia</button>
-                </div>
-                <p class="friends-id-note">Condividi questo codice con chi vuoi aggiungere</p>
-            </div>
-
-            <!-- AGGIUNGI AMICO -->
-            <div class="friends-add-section">
-                <h3>➕ Aggiungi Amico</h3>
-                <div class="friends-add-row">
-                    <input type="text"
-                           id="friend-id-input"
-                           class="friends-add-input"
-                           placeholder="Inserisci codice PX-XXXXXXXX"
-                           maxlength="11"
-                           autocomplete="off"
-                           autocapitalize="characters"
-                           oninput="this.value = this.value.toUpperCase()">
-                    <button class="friends-add-btn" onclick="Friends.sendRequest()">INVIA</button>
-                </div>
-            </div>
-
-            <!-- RICHIESTE PENDENTI -->
-            ${requests.length > 0 ? `
-                <div class="friends-requests-section">
-                    <h3>📨 Richieste (${requests.length})</h3>
-                    ${requests.map(r => `
-                        <div class="friend-request-item">
-                            <span class="request-id">${r.id}</span>
-                            <span class="request-status">In attesa...</span>
-                            <button class="request-test-btn" onclick="Friends.acceptTest('${r.id}')">Simula ✓</button>
-                        </div>
-                    `).join('')}
-                </div>
-            ` : ''}
-
-            <!-- LISTA AMICI -->
-            <div class="friends-list-section">
-                <h3>👥 Amici (${friends.length})</h3>
-                ${friends.length === 0 ? `
-                    <div class="friends-empty">
-                        <span class="friends-empty-icon">👥</span>
-                        <p>Nessun amico ancora</p>
-                        <p class="friends-empty-hint">Condividi il tuo codice per iniziare!</p>
-                    </div>
-                ` : `
-                    ${friends.map(f => `
-                        <div class="friend-item" onclick="Friends.openFriendProfile('${f.id}')">
-                            <span class="friend-item-avatar">👤</span>
-                            <div class="friend-item-info">
-                                <span class="friend-item-name">${f.name}</span>
-                                <span class="friend-item-id">${f.id}</span>
-                            </div>
-                            <span class="friend-item-level">Lv.${f.level}</span>
-                            <span class="friend-item-arrow">→</span>
-                        </div>
-                    `).join('')}
-                `}
-            </div>
-
-            <!-- COMING SOON NOTE -->
-            <div class="friends-footer-note">
-                <span>🚧</span>
-                <p>Il sistema amicizie completo arriverà in un prossimo aggiornamento con backend online. Per ora puoi generare il tuo ID e preparare la lista!</p>
-            </div>
-        `;
+    // fallback vecchio placeholder locale (così non rompi nulla se non configuri Supabase)
+    let local = Storage.load('user_id');
+    if (!local) {
+      local = this._generateLocalId();
+      Storage.save('user_id', local);
     }
+    return local;
+  },
+
+  getCount() {
+    const cached = Storage.load('friends_cache');
+    return Array.isArray(cached) ? cached.length : 0;
+  },
+
+  _generateLocalId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let id = 'PX-';
+    for (let i = 0; i < 8; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
+    return id;
+  },
+
+open() {
+  // evita doppi overlay
+  const existing = document.getElementById('friends-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-overlay';
+
+  overlay.innerHTML = `
+    <div id="friends-panel">
+      <div class="friends-panel-header">
+        <div>
+          <h2>👥 AMICI</h2>
+          <p class="friends-panel-subtitle">Collabora e cresci insieme</p>
+        </div>
+        <button class="friends-close-btn" onclick="Friends.close()">✕</button>
+      </div>
+      <div id="friends-content"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  this.render();
+  this.refresh(); // lascia questo: serve ai dati
+},
+
+close() {
+  const overlay = document.getElementById('friends-overlay');
+  if (!overlay) return;
+
+  overlay.style.animation = 'friendsOut 0.22s ease forwards';
+
+  setTimeout(() => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  }, 220);
+},
+
+  copyId() {
+    const id = this.getMyId();
+    navigator.clipboard.writeText(id).then(() => {
+      showMessage('Codice copiato!', 'positive');
+    }).catch(() => {
+      const input = document.createElement('input');
+      input.value = id;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      input.remove();
+      showMessage('Codice copiato!', 'positive');
+    });
+  },
+
+  async refresh() {
+    try {
+      this._state.loading = true;
+      this.render();
+
+      if (typeof Auth === 'undefined' || !Auth.client()) {
+        this._state.loading = false;
+        this.render();
+        return;
+      }
+
+      if (!Auth.isLoggedIn()) {
+        this._state.loading = false;
+        this.render();
+        return;
+      }
+
+      // Sync stats (non obbligatorio ma utile)
+      if (typeof CloudSync !== 'undefined') {
+        CloudSync.pushMyStats(false);
+      }
+
+      const client = Auth.client();
+      const uid = Auth.userId();
+
+      // 1) mio profilo + friend_code
+      const { data: myProfile, error: meErr } = await client
+        .from('profiles')
+        .select('id, username, friend_code, level, xp, reps, streak')
+        .eq('id', uid)
+        .single();
+
+      if (meErr) {
+        console.warn('Friends: errore fetch profilo:', meErr.message);
+      } else {
+        this._state.myProfile = myProfile;
+        if (myProfile?.friend_code) Storage.save('friend_code', myProfile.friend_code);
+      }
+
+      // 2) richieste
+      const [incomingRes, outgoingRes] = await Promise.all([
+        client.from('friend_requests')
+          .select('id, from_id, to_id, status, created_at')
+          .eq('to_id', uid)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false }),
+
+        client.from('friend_requests')
+          .select('id, from_id, to_id, status, created_at')
+          .eq('from_id', uid)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+      ]);
+
+      const incoming = incomingRes.data || [];
+      const outgoing = outgoingRes.data || [];
+
+      // 3) friendships
+      const { data: frRows, error: frErr } = await client
+        .from('friendships')
+        .select('user_a, user_b, created_at')
+        .or(`user_a.eq.${uid},user_b.eq.${uid}`)
+        .order('created_at', { ascending: false });
+
+      if (frErr) console.warn('Friends: friendships error:', frErr.message);
+
+      const friendIds = (frRows || []).map(r => (r.user_a === uid ? r.user_b : r.user_a));
+      const incomingIds = incoming.map(r => r.from_id);
+      const outgoingIds = outgoing.map(r => r.to_id);
+
+      const idsToFetch = Array.from(new Set([...friendIds, ...incomingIds, ...outgoingIds].filter(Boolean)));
+
+      let profilesById = {};
+      if (idsToFetch.length) {
+        const { data: profs, error: pErr } = await client
+          .from('profiles')
+          .select('id, username, friend_code, level, xp, reps, streak')
+          .in('id', idsToFetch);
+
+        if (pErr) console.warn('Friends: profiles batch error:', pErr.message);
+
+        (profs || []).forEach(p => { profilesById[p.id] = p; });
+      }
+
+      // 4) costruisci UI models
+      const friends = friendIds.map(id => profilesById[id]).filter(Boolean);
+
+      const incomingUI = incoming.map(r => ({
+        id: r.id,
+        from: profilesById[r.from_id] || { id: r.from_id, username: 'Sconosciuto', friend_code: '—' },
+        created_at: r.created_at
+      }));
+
+      const outgoingUI = outgoing.map(r => ({
+        id: r.id,
+        to: profilesById[r.to_id] || { id: r.to_id, username: 'Sconosciuto', friend_code: '—' },
+        created_at: r.created_at
+      }));
+
+      this._state.friends = friends;
+      this._state.incoming = incomingUI;
+      this._state.outgoing = outgoingUI;
+
+      // cache per Profile.getCount()
+      Storage.save('friends_cache', friends);
+
+      this._state.loading = false;
+      this.render();
+    } catch (e) {
+      console.error('Friends.refresh error:', e);
+      this._state.loading = false;
+      this.render();
+    }
+  },
+
+render() {
+  const content = document.getElementById('friends-content');
+  if (!content) return;
+
+  // Se Auth/Supabase non è disponibile: fallback
+  if (typeof Auth === 'undefined' || !Auth.client()) {
+    content.innerHTML = `
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3> BACKEND</h3>
+        </div>
+        <p class="friends-note">
+          Backend non configurato. Devi settare <b>modules/supabase-config.js</b> (url + anonKey).
+        </p>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3>🆔 CODICE (fallback locale)</h3>
+          <button class="manual-btn" onclick="Friends.copyId()">COPIA</button>
+        </div>
+        <div style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-weight:900; font-size:1.1rem;">
+          ${this.getMyId()}
+        </div>
+        <p class="friends-note">Questo è solo locale finché non attivi il backend.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Non loggato -> form login/signup (stile card)
+  if (!Auth.isLoggedIn()) {
+    content.innerHTML = `
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3>🔐 ACCESSO</h3>
+        </div>
+
+        <label class="friends-label">EMAIL</label>
+        <input id="auth-email" type="email" class="manual-input" placeholder="you@email.com" autocomplete="email"/>
+
+        <div style="height:10px"></div>
+
+        <label class="friends-label">PASSWORD</label>
+        <input id="auth-pass" type="password" class="manual-input" placeholder="••••••••" autocomplete="current-password"/>
+
+        <div class="friends-actions">
+          <button class="manual-btn" onclick="Friends._login()">LOGIN</button>
+          <button class="manual-btn friends-btn-ghost" onclick="Friends._signup()">SIGN UP</button>
+        </div>
+
+        <p class="friends-note">
+          Dopo il login avrai un <b>codice PX</b> vero (cloud) e amici condivisi su più dispositivi.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  // Friend profile view (se la tua versione usa _state.view)
+  if (this._state?.view === 'friend' && this._state.friendProfile) {
+    const f = this._state.friendProfile;
+
+    content.innerHTML = `
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3> PROFILO AMICO</h3>
+          <button class="manual-btn friends-btn-ghost" onclick="Friends._backToList()">← TORNA</button>
+        </div>
+
+        <div style="font-weight:900; font-size:1.05rem">${f.username || 'Player'}</div>
+        <div class="friends-code" style="margin-top:4px">${f.friend_code || ''}</div>
+
+        <div class="friends-stat-grid">
+          <div class="friends-stat"><div class="label">LEVEL</div><div class="value">${(f.level ?? 1)}</div></div>
+          <div class="friends-stat"><div class="label">STREAK</div><div class="value">${(f.streak ?? 0)}</div></div>
+          <div class="friends-stat"><div class="label">XP</div><div class="value">${(f.xp ?? 0).toLocaleString()}</div></div>
+          <div class="friends-stat"><div class="label">REPS</div><div class="value">${(f.reps ?? 0).toLocaleString()}</div></div>
+        </div>
+
+        <div class="friends-actions" style="margin-top:14px">
+          <button class="manual-btn friends-btn-red" onclick="Friends.removeFriend('${f.id}')">RIMUOVI AMICO</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // List view (loggato)
+  const myCode = this.getMyId();
+  const myEmail = Auth.email();
+
+  content.innerHTML = `
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>👤 ACCOUNT</h3>
+        <button class="manual-btn friends-btn-ghost"
+          onclick="Auth.signOut().then(()=>{showMessage('Logout', 'warning'); Friends.refresh();})">
+          LOGOUT
+        </button>
+      </div>
+      <div style="font-weight:800">${myEmail || ''}</div>
+      <p class="friends-note">Le tue stats vengono sincronizzate per renderle visibili agli amici.</p>
+    </div>
+
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>🆔 CODICE AMICO</h3>
+        <button class="manual-btn" onclick="Friends.copyId()">COPIA</button>
+      </div>
+
+      <div style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-weight:900; font-size:1.1rem;">
+        ${myCode}
+      </div>
+
+      <p class="friends-note">Condividilo con chi vuoi aggiungere.</p>
+    </div>
+
+    <div class="section-card">
+      <h3>➕ AGGIUNGI AMICO</h3>
+      <div class="friends-row">
+        <input id="friend-id-input" class="manual-input" placeholder="PX-........" autocomplete="off"/>
+        <button class="manual-btn" onclick="Friends.sendRequest()">INVIA</button>
+      </div>
+      <p class="friends-note">Incolla il codice PX del tuo amico.</p>
+    </div>
+
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>📨 RICHIESTE</h3>
+        <span class="friends-meta">${this._state.incoming.length}</span>
+      </div>
+
+      ${
+        this._state.incoming.length === 0
+          ? `<p class="friends-note">Nessuna richiesta in arrivo.</p>`
+          : this._state.incoming.map(r => `
+              <div class="friends-item" style="cursor:default">
+                <div class="friends-item-left">
+                  <div class="friends-name">${r.from.username || 'Player'}</div>
+                  <div class="friends-code">${r.from.friend_code || ''}</div>
+                </div>
+                <div style="display:flex; gap:8px">
+                  <button class="manual-btn" onclick="Friends.acceptRequest('${r.id}','${r.from.id}')">OK</button>
+                  <button class="manual-btn friends-btn-red" onclick="Friends.rejectRequest('${r.id}')">NO</button>
+                </div>
+              </div>
+            `).join('')
+      }
+    </div>
+
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>⏳ INVIATE</h3>
+        <span class="friends-meta">${this._state.outgoing.length}</span>
+      </div>
+
+      ${
+        this._state.outgoing.length === 0
+          ? `<p class="friends-note">Nessuna richiesta inviata.</p>`
+          : this._state.outgoing.map(r => `
+              <div class="friends-item" style="cursor:default">
+                <div class="friends-item-left">
+                  <div class="friends-name">${r.to.username || 'Player'}</div>
+                  <div class="friends-code">${r.to.friend_code || ''}</div>
+                </div>
+                <button class="manual-btn friends-btn-ghost" onclick="Friends.cancelRequest('${r.id}')">ANNULLA</button>
+              </div>
+            `).join('')
+      }
+    </div>
+
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>🤝 AMICI</h3>
+        <span class="friends-meta">${this._state.friends.length}</span>
+      </div>
+
+      ${
+        this._state.friends.length === 0
+          ? `<p class="friends-note">Nessun amico ancora. Inizia inviando una richiesta.</p>`
+          : this._state.friends.map(f => `
+              <div class="friends-item" onclick="Friends.openFriendProfile('${f.id}')">
+                <div class="friends-item-left">
+                  <div class="friends-name">${f.username || 'Player'}</div>
+                  <div class="friends-code">${f.friend_code || ''}</div>
+                </div>
+                <div class="friends-meta">Lv.${f.level ?? 1} →</div>
+              </div>
+            `).join('')
+      }
+
+      ${this._state.loading ? `<p class="friends-note">Sync in corso...</p>` : ``}
+    </div>
+  `;
+},
+  async _login() {
+    const email = (document.getElementById('auth-email')?.value || '').trim();
+    const pass = (document.getElementById('auth-pass')?.value || '').trim();
+    if (!email || !pass) { showMessage('Inserisci email + password', 'warning'); return; }
+
+    const res = await Auth.signIn(email, pass);
+    if (!res.ok) { showMessage(res.error || 'Login error', 'negative'); return; }
+
+    showMessage('Login OK', 'positive');
+    this.refresh();
+  },
+
+  async _signup() {
+    const email = (document.getElementById('auth-email')?.value || '').trim();
+    const pass = (document.getElementById('auth-pass')?.value || '').trim();
+    if (!email || !pass) { showMessage('Inserisci email + password', 'warning'); return; }
+
+    const res = await Auth.signUp(email, pass);
+    if (!res.ok) { showMessage(res.error || 'Signup error', 'negative'); return; }
+
+    showMessage('Account creato! (se hai conferma email attiva, controlla la mail)', 'positive');
+    this.refresh();
+  },
+
+  _backToList() {
+    this._state.view = 'list';
+    this._state.friendProfile = null;
+    this.render();
+  },
+
+  async sendRequest() {
+    try {
+      if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
+
+      const input = document.getElementById('friend-id-input');
+      const raw = (input?.value || '').trim().toUpperCase();
+      if (!raw) { showMessage('Inserisci un codice amico', 'warning'); return; }
+
+      const myCode = this.getMyId();
+      if (raw === myCode) { showMessage('Non puoi aggiungerti da solo', 'warning'); return; }
+
+      const client = Auth.client();
+      const uid = Auth.userId();
+
+      // trova profilo target via friend_code
+      const { data: target, error: tErr } = await client
+        .from('profiles')
+        .select('id, username, friend_code')
+        .eq('friend_code', raw)
+        .single();
+
+      if (tErr || !target) { showMessage('Codice non trovato', 'negative'); return; }
+      if (target.id === uid) { showMessage('Non puoi aggiungerti da solo', 'warning'); return; }
+
+      // evita se già amici (soft check)
+      const { data: frRows } = await client
+        .from('friendships')
+        .select('user_a, user_b')
+        .or(`user_a.eq.${uid},user_b.eq.${uid}`);
+
+      const already = (frRows || []).some(r => (r.user_a === target.id || r.user_b === target.id));
+      if (already) { showMessage('Siete già amici', 'warning'); return; }
+
+      const { error } = await client
+        .from('friend_requests')
+        .insert({ from_id: uid, to_id: target.id, status: 'pending' });
+
+      if (error) {
+        showMessage(error.message.includes('duplicate') ? 'Richiesta già inviata' : error.message, 'warning');
+        return;
+      }
+
+      if (input) input.value = '';
+      showMessage(`Richiesta inviata a ${target.username || raw}`, 'positive');
+      this.refresh();
+    } catch (e) {
+      console.error('sendRequest error:', e);
+      showMessage('Errore invio richiesta', 'negative');
+    }
+  },
+
+  async acceptRequest(requestId, fromId) {
+    try {
+      const client = Auth.client();
+      const uid = Auth.userId();
+
+      // aggiorna richiesta
+      const { error: upErr } = await client
+        .from('friend_requests')
+        .update({ status: 'accepted' })
+        .eq('id', requestId)
+        .eq('to_id', uid);
+
+      if (upErr) { showMessage(upErr.message, 'negative'); return; }
+
+      // crea amicizia (ordine canonico per evitare doppi)
+      const a = (fromId < uid) ? fromId : uid;
+      const b = (fromId < uid) ? uid : fromId;
+
+      const { error: insErr } = await client
+        .from('friendships')
+        .upsert({ user_a: a, user_b: b }, { onConflict: 'user_a,user_b' });
+
+      if (insErr) { showMessage(insErr.message, 'negative'); return; }
+
+      showMessage('Amico aggiunto!', 'positive');
+      this.refresh();
+    } catch (e) {
+      console.error('acceptRequest error:', e);
+      showMessage('Errore accettazione', 'negative');
+    }
+  },
+
+  async rejectRequest(requestId) {
+    try {
+      const client = Auth.client();
+      const uid = Auth.userId();
+
+      const { error } = await client
+        .from('friend_requests')
+        .update({ status: 'rejected' })
+        .eq('id', requestId)
+        .eq('to_id', uid);
+
+      if (error) { showMessage(error.message, 'negative'); return; }
+
+      showMessage('Richiesta rifiutata', 'warning');
+      this.refresh();
+    } catch (e) {
+      console.error('rejectRequest error:', e);
+      showMessage('Errore rifiuto', 'negative');
+    }
+  },
+
+  async cancelRequest(requestId) {
+    try {
+      const client = Auth.client();
+      const { error } = await client
+        .from('friend_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) { showMessage(error.message, 'negative'); return; }
+
+      showMessage('Richiesta annullata', 'warning');
+      this.refresh();
+    } catch (e) {
+      console.error('cancelRequest error:', e);
+      showMessage('Errore annullo', 'negative');
+    }
+  },
+
+  async removeFriend(friendId) {
+    try {
+      if (!confirm('Rimuovere questo amico?')) return;
+
+      const client = Auth.client();
+      const uid = Auth.userId();
+
+      const a = (friendId < uid) ? friendId : uid;
+      const b = (friendId < uid) ? uid : friendId;
+
+      const { error } = await client
+        .from('friendships')
+        .delete()
+        .eq('user_a', a)
+        .eq('user_b', b);
+
+      if (error) { showMessage(error.message, 'negative'); return; }
+
+      showMessage('Amico rimosso', 'warning');
+      this._backToList();
+      this.refresh();
+    } catch (e) {
+      console.error('removeFriend error:', e);
+      showMessage('Errore rimozione', 'negative');
+    }
+  },
+
+  async openFriendProfile(friendId) {
+    try {
+      const client = Auth.client();
+      const { data, error } = await client
+        .from('profiles')
+        .select('id, username, friend_code, level, xp, reps, streak')
+        .eq('id', friendId)
+        .single();
+
+      if (error || !data) {
+        showMessage('Impossibile caricare profilo', 'negative');
+        return;
+      }
+
+      this._state.view = 'friend';
+      this._state.friendProfile = data;
+      this.render();
+    } catch (e) {
+      console.error('openFriendProfile error:', e);
+      showMessage('Errore profilo amico', 'negative');
+    }
+  }
 };

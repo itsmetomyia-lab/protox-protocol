@@ -252,7 +252,7 @@
       <div class="page page-hidden" id="page-missions">
         <div class="page-header">
           <h2>🎯 MISSIONI</h2>
-          <p class="page-subtitle">3 missioni ogni giorno</p>
+          <p class="page-subtitle">5 missioni ogni giorno</p>
         </div>
 
         <!-- MISSIONI GIORNALIERE -->
@@ -396,7 +396,16 @@
 
     <!-- SCRIPTS - Ordine IMPORTANTE -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
     <script src="modules/storage.js"></script>
+
+<!-- Cloud/Auth (devono stare DOPO storage.js) -->
+    <script src="modules/supabase-config.js"></script>
+    <script src="modules/auth.js"></script>
+    <script src="modules/cloud-sync.js"></script>
     <script src="modules/sounds.js"></script>
     <script src="modules/particles.js"></script>
     <script src="modules/dark-light.js"></script>

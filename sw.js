@@ -3,29 +3,37 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v3';
+const CACHE_NAME = 'protox-v4';
 
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/manifest.json',
-    '/modules/storage.js',
-    '/modules/sounds.js',
-    '/modules/particles.js',
-    '/modules/dark-light.js',
-    '/modules/xp-multiplier.js',
-    '/modules/records.js',
-    '/modules/achievements.js',
-    '/modules/missions.js',
-    '/modules/protox-tracker.js',
-    '/modules/timer.js',
-    '/modules/focus-mode.js',
-    '/modules/profile.js',
-    '/modules/daily-reset.js',
-    '/modules/notifications.js',
-    '/modules/navigation.js',
-    '/modules/player-stats.js'
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/manifest.json',
+
+  '/modules/storage.js',
+
+  '/modules/supabase-config.js',
+  '/modules/auth.js',
+  '/modules/cloud-sync.js',
+
+  '/modules/sounds.js',
+  '/modules/particles.js',
+  '/modules/dark-light.js',
+  '/modules/xp-multiplier.js',
+  '/modules/records.js',
+  '/modules/achievements.js',
+  '/modules/missions.js',
+  '/modules/protox-tracker.js',
+  '/modules/timer.js',
+  '/modules/focus-mode.js',
+  '/modules/profile.js',
+  '/modules/daily-reset.js',
+  '/modules/notifications.js',
+  '/modules/navigation.js',
+  '/modules/player-stats.js',
+
+  '/modules/friends.js'
 ];
 
 // Install - salva tutto in cache

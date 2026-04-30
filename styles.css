@@ -5324,3 +5324,230 @@ body.theme-custom {
     color: var(--text-dim);
     line-height: 1.5;
 }
+
+/* ============================================
+   FRIENDS (overlay + UI)
+   ============================================ */
+
+#friends-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(18px);
+  z-index: 1001;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  padding: 16px 16px calc(var(--tab-height) + 16px);
+  animation: friendsIn 0.22s ease;
+}
+
+#friends-panel{
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.18);
+}
+
+.friends-panel-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.friends-panel-header h2{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: white;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px var(--purple-glow);
+}
+
+.friends-panel-subtitle{
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.friends-close-btn{
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.friends-close-btn:hover{
+  border-color: var(--purple-main);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+#friends-content{
+  padding: 16px;
+  max-height: 72vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple-dark) transparent;
+}
+
+/* mini-utility */
+.friends-row{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.friends-note{
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.friends-label{
+  display: block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.friends-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.friends-actions > button{
+  flex: 1;
+}
+
+/* bottoni varianti */
+.friends-btn-ghost{
+  background: transparent !important;
+  color: var(--text-dim) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+.friends-btn-ghost:hover{
+  border-color: var(--purple-main) !important;
+  color: var(--text-main) !important;
+}
+
+.friends-btn-red{
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: rgba(239, 68, 68, 0.95) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+.friends-btn-red:hover{
+  background: rgba(239, 68, 68, 0.85) !important;
+  color: white !important;
+}
+
+/* cards lista (stile mission-item ma per amici) */
+.friends-item{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px;
+  margin-top: 8px;
+
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 12px;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.friends-item:hover{
+  background: rgba(139, 92, 246, 0.10);
+  border-color: rgba(139, 92, 246, 0.30);
+  transform: translateX(3px);
+}
+
+.friends-item-left{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.friends-name{
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friends-code{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.friends-meta{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  color: var(--purple-main);
+  white-space: nowrap;
+}
+
+/* stats amico */
+.friends-stat-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.friends-stat{
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.friends-stat .label{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.friends-stat .value{
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: white;
+}
+
+@keyframes friendsIn{
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes friendsOut{
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(14px); }
+}

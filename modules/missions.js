@@ -43,36 +43,73 @@ const MISSION_POOL = [
 
 const Missions = {
 
-    // Genera 3 missioni random per oggi
-    generateDaily() {
-        const today = new Date().toDateString();
-        const saved = Storage.load('missions');
+// Genera 5 missioni random per oggi
+generateDaily() {
+  const today = new Date().toDateString();
+  const saved = Storage.load('missions');
+  const DAILY_MISSION_COUNT = 5;
 
-        // Se già generate oggi, ritorna quelle
-        if (saved && saved.date === today) {
-            return saved;
-        }
+  // Helper: pesca missioni random, cercando prima di coprire più categorie possibili
+  const pickMissions = (count, usedIds = new Set()) => {
+    const missions = [];
+    const categories = ['mind', 'body', 'will', 'soul'];
+    const shuffledCats = [...categories].sort(() => Math.random() - 0.5);
 
-        // Seleziona 3 random da categorie diverse
-        const categories = ['mind', 'body', 'will', 'soul'];
-        const shuffled = categories.sort(() => Math.random() - 0.5);
-        const selectedCats = shuffled.slice(0, 3);
+    // 1) Una per categoria (finché serve)
+    shuffledCats.forEach(cat => {
+      if (missions.length >= count) return;
 
-        const missions = selectedCats.map(cat => {
-            const pool = MISSION_POOL.filter(m => m.category === cat);
-            const random = pool[Math.floor(Math.random() * pool.length)];
-            return { ...random, completed: false };
-        });
+      const pool = MISSION_POOL.filter(m => m.category === cat && !usedIds.has(m.id));
+      if (!pool.length) return;
 
-        const data = {
-            date: today,
-            missions: missions,
-            allCompleted: false
-        };
+      const random = pool[Math.floor(Math.random() * pool.length)];
+      usedIds.add(random.id);
+      missions.push({ ...random, completed: false });
+    });
 
-        Storage.save('missions', data);
-        return data;
-    },
+    // 2) Riempi il resto da tutto il pool (sempre evitando duplicati)
+    let safety = 0;
+    while (missions.length < count && safety < 2000) {
+      safety++;
+
+      const pool = MISSION_POOL.filter(m => !usedIds.has(m.id));
+      if (!pool.length) break;
+
+      const random = pool[Math.floor(Math.random() * pool.length)];
+      usedIds.add(random.id);
+      missions.push({ ...random, completed: false });
+    }
+
+    return missions;
+  };
+
+  // Se già generate oggi:
+  // - se erano 3 (vecchio formato), ne aggiunge 2 senza perdere i progressi di oggi
+  if (saved && saved.date === today && Array.isArray(saved.missions)) {
+    if (saved.missions.length >= DAILY_MISSION_COUNT) return saved;
+
+    const usedIds = new Set(saved.missions.map(m => m.id));
+    const extra = pickMissions(DAILY_MISSION_COUNT - saved.missions.length, usedIds);
+
+    saved.missions = saved.missions.concat(extra);
+    saved.allCompleted = saved.missions.every(m => m.completed);
+
+    Storage.save('missions', saved);
+    return saved;
+  }
+
+  // Nuova generazione (5 missioni)
+  const missions = pickMissions(DAILY_MISSION_COUNT);
+
+  const data = {
+    date: today,
+    missions: missions,
+    allCompleted: false
+  };
+
+  Storage.save('missions', data);
+  return data;
+},
 
     // Completa una missione
     complete(missionId) {
@@ -134,7 +171,7 @@ const Missions = {
                     <div class="bonus-dots">
                         ${data.missions.map((m, i) => `<span class="bonus-dot ${m.completed ? 'filled' : ''}"></span>`).join('')}
                     </div>
-                    <span class="bonus-text">${completed}/3 — ${data.allCompleted ? 'BONUS +100 XP ✅' : 'Completa tutte per +100 XP'}</span>
+                    <span class="bonus-text">${completed}/${data.missions.length} — ${data.allCompleted ? 'BONUS +100 XP ✅' : 'Completa tutte per +100 XP'}</span>
                 </div>
             `;
         }
