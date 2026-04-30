@@ -11,6 +11,27 @@ const Changelog = {
     // Quando aggiungi un update, metti un nuovo oggetto IN CIMA all'array
     // L'utente vedrà il popup UNA SOLA VOLTA per ogni versione
     updates: [
+
+        {
+  version: 'BETA 0.0.2',
+  date: '2026-04-30',
+  title: '👥 FRIENDS ONLINE + AUTH',
+  highlights: [
+    '👥 Sistema AMICI finalmente ONLINE e 100% funzionante',
+    '🔐 Sign-Up / Log-In reale — addio placeholder',
+    '🆔 Friend Code cloud (PX-XXXXXXXX) copiabile in 1 tap',
+    '📨 Richieste amicizia: invia / annulla / accetta / rifiuta (tutto live)',
+    '🤝 Friendship bidirezionale: aggiunta + rimozione istantanea e stabile',
+    '🧠 Smart-request: se c’è una richiesta inversa → auto-accept immediata',
+    '🌐 Sync cross-device: amici e richieste uguali su tutti i dispositivi',
+    '📊 Profili amici con stats vere: level / xp / reps / streak dal cloud',
+    '🛡️ Backend solido: Postgres + RLS + RPC anti-bug (niente 409 / niente ghost rows)',
+    '✨ Friends UI PREMIUM: glow soffuso, tabs, modal super polished',
+    '✅ Popup conferma custom per aggiungere amici',
+    '🧰 Service Worker fix: niente cache su POST/Auth (stabilità totale)'
+  ],
+  type: 'major'
+},
         {
             version: 'BETA 0.0.1',
             date: '2026-01-28',

@@ -349,43 +349,77 @@ const Profile = {
 
 
         container.innerHTML = `
-            <div class="profile-header">
-                <div class="profile-avatar">${this.getAvatarEmoji(player.level)}</div>
-                <h2 class="profile-player-name" id="profile-name">${player.name || 'Player'}</h2>
-                <button class="profile-edit-btn" onclick="Profile.changeName()">✏️ Modifica</button>
-                <p class="profile-title">LEVEL ${player.level} — ${player.title}</p>
-            </div>
+            <div class="profile-hero">
 
-            <div class="profile-stats-grid">
-                <div class="profile-stat">
-                    <span class="ps-big">${player.xp.toLocaleString()}</span>
-                    <span class="ps-label">XP Totali</span>
-                </div>
-                <div class="profile-stat">
-                    <span class="ps-big">${player.reps.toLocaleString()}</span>
-                    <span class="ps-label">Reps Totali</span>
-                </div>
-                <div class="profile-stat">
-                    <span class="ps-big">${player.streak}</span>
-                    <span class="ps-label">Streak</span>
-                </div>
-                <div class="profile-stat">
-                    <span class="ps-big">${records.maxStreak}</span>
-                    <span class="ps-label">Max Streak</span>
-                </div>
-                <div class="profile-stat">
-                    <span class="ps-big">${badges.unlocked}/${badges.total}</span>
-                    <span class="ps-label">Badge</span>
-                </div>
-                <div class="profile-stat">
-                    <span class="ps-big">${countdown.day}/90</span>
-                    <span class="ps-label">Giorno</span>
-                </div>
-                <div class="profile-stat" onclick="if(typeof Friends!=='undefined')Friends.open()" style="cursor:pointer">
-                    <span class="ps-big">${typeof Friends !== 'undefined' ? Friends.getCount() : 0}</span>
-                    <span class="ps-label">Amici</span>
-                </div>
-            </div>
+  <div class="profile-header">
+    <div class="profile-avatar">${this.getAvatarEmoji(player.level)}</div>
+
+    <h2 class="profile-player-name" id="profile-name">${player.name || 'Player'}</h2>
+
+    <p class="profile-title">LEVEL ${player.level} — ${player.title}</p>
+
+    <div class="profile-mini-actions">
+      <button class="profile-mini-btn" onclick="Profile.changeName()">✏️ MODIFICA</button>
+
+      <button class="profile-mini-btn"
+        onclick="if(typeof Friends!=='undefined'){Friends.copyId()}">
+        🆔 COPIA ID
+      </button>
+
+      <button class="profile-mini-btn"
+        onclick="if(typeof Friends!=='undefined'){Friends.open()}">
+        👥 AMICI
+      </button>
+    </div>
+
+    <div class="profile-code-row"
+      onclick="if(typeof Friends!=='undefined'){Friends.copyId()}"
+      title="Tocca per copiare">
+      <span class="profile-code-label">CODICE</span>
+      <span class="profile-code-pill">${typeof Friends !== 'undefined' ? Friends.getMyId() : '—'}</span>
+    </div>
+  </div>
+
+  <div class="profile-stats-grid">
+
+    <div class="profile-stat">
+      <span class="ps-big">${player.xp.toLocaleString()}</span>
+      <span class="ps-label">XP Totali</span>
+    </div>
+
+    <div class="profile-stat">
+      <span class="ps-big">${player.reps.toLocaleString()}</span>
+      <span class="ps-label">Reps Totali</span>
+    </div>
+
+    <div class="profile-stat">
+      <span class="ps-big">${player.streak}</span>
+      <span class="ps-label">Streak</span>
+    </div>
+
+    <div class="profile-stat">
+      <span class="ps-big">${records.maxStreak}</span>
+      <span class="ps-label">Max Streak</span>
+    </div>
+
+    <div class="profile-stat">
+      <span class="ps-big">${badges.unlocked}/${badges.total}</span>
+      <span class="ps-label">Badge</span>
+    </div>
+
+    <div class="profile-stat">
+      <span class="ps-big">${countdown.day}/90</span>
+      <span class="ps-label">Giorno</span>
+    </div>
+
+    <div class="profile-stat clickable" onclick="if(typeof Friends!=='undefined')Friends.open()">
+      <span class="ps-big">${typeof Friends !== 'undefined' ? Friends.getCount() : 0}</span>
+      <span class="ps-label">Amici</span>
+    </div>
+
+  </div>
+
+</div>
 
             <div class="profile-section">
                 <h3>⚙️ IMPOSTAZIONI</h3>
