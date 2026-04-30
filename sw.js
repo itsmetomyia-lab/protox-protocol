@@ -61,33 +61,43 @@ self.addEventListener('activate', event => {
 });
 
 // Fetch - servi da cache, poi network
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // 1) Mai cache per richieste NON-GET (POST/PUT/DELETE) — es. Supabase auth
+  if (req.method !== 'GET') {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  // 2) Non gestire richieste verso domini esterni (supabase.co, cdn, ecc.)
+  if (url.origin !== self.location.origin) {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  // 3) Navigazione: fallback su index.html (SPA) se offline
+  if (req.mode === 'navigate') {
     event.respondWith(
-        caches.match(event.request).then(response => {
-            // Se in cache, usa quella
-            if (response) {
-                // Ma aggiorna in background
-                fetch(event.request).then(freshResponse => {
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, freshResponse);
-                    });
-                }).catch(() => {});
-
-                return response;
-            }
-
-            // Se non in cache, vai online
-            return fetch(event.request).then(response => {
-                // Salva in cache per dopo
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, responseClone);
-                });
-                return response;
-            }).catch(() => {
-                // Offline e non in cache
-                return new Response('Offline - ricarica quando hai connessione');
-            });
-        })
+      fetch(req).catch(() => caches.match('/index.html'))
     );
+    return;
+  }
+
+  // 4) Asset: cache-first + aggiorna cache
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(req).then((res) => {
+        // Non cache-are risposte non-ok
+        if (!res || !res.ok) return res;
+
+        const resClone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+        return res;
+      });
+    })
+  );
 });

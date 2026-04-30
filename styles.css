@@ -5862,3 +5862,141 @@ body.theme-custom {
     padding: 12px;
   }
 }
+
+
+/* ============================================
+   FRIENDS — Header polish (rounded + nicer gradient)
+   ============================================ */
+
+.friends-header{
+  /* arrotonda davvero il “box nero” del titolo */
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+
+  /* fix: su iOS/Safari il backdrop-filter a volte non viene clippato bene */
+  overflow: hidden;
+  transform: translateZ(0);
+
+  /* lasciamo che lo sfondo lo faccia il ::before (più figo) */
+  background: transparent !important;
+
+  position: sticky; /* se già sticky, ok: questa riga non rompe nulla */
+  top: 0;
+}
+
+.friends-header::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* gradient più “protox”, meno piatto */
+  background:
+    radial-gradient(700px 110px at 30% 0%, rgba(139, 92, 246, 0.35), transparent 65%),
+    radial-gradient(700px 110px at 80% 0%, rgba(34, 211, 238, 0.18), transparent 62%),
+    linear-gradient(180deg, rgba(8, 8, 12, 0.92), rgba(8, 8, 12, 0.60));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* assicura che testo e bottoni stiano sopra al gradient */
+.friends-header > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* un filo più “premium” anche sul bottone X */
+.friends-icon-btn{
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  background: rgba(255,255,255,0.03) !important;
+}
+.friends-icon-btn:hover{
+  border-color: rgba(139,92,246,0.42) !important;
+  box-shadow: 0 0 18px rgba(139,92,246,0.22) !important;
+}
+
+/* ============================================
+   FRIENDS — Custom confirm modal (no Chrome confirm)
+   ============================================ */
+
+#friends-confirm-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* sopra friends overlay */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding:
+    max(14px, env(safe-area-inset-top))
+    14px
+    max(14px, env(safe-area-inset-bottom));
+
+  background:
+    radial-gradient(900px 500px at 50% 20%, rgba(139, 92, 246, 0.22), transparent 55%),
+    rgba(0,0,0,0.72);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  animation: friendsIn 0.16s ease;
+}
+
+.friends-confirm-card{
+  width: min(92vw, 420px);
+  border-radius: 18px;
+  overflow: hidden;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.10);
+
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.20) inset,
+    0 18px 60px rgba(0,0,0,0.60),
+    0 0 30px rgba(139,92,246,0.16);
+}
+
+.friends-confirm-head{
+  padding: 14px 14px 12px;
+  background:
+    radial-gradient(700px 110px at 25% 0%, rgba(139, 92, 246, 0.32), transparent 65%),
+    linear-gradient(180deg, rgba(8, 8, 12, 0.92), rgba(8, 8, 12, 0.62));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.friends-confirm-title{
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 2px;
+  font-size: 0.78rem;
+  color: #fff;
+}
+
+.friends-confirm-body{
+  padding: 12px 14px 14px;
+  color: var(--text-dim);
+  line-height: 1.35;
+  font-size: 0.92rem;
+}
+
+.friends-confirm-actions{
+  display: flex;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.friends-confirm-actions .manual-btn{
+  flex: 1;
+  padding: 12px 12px;
+}
+
+.friends-confirm-danger{
+  background: rgba(239, 68, 68, 0.14) !important;
+  border: 1px solid rgba(239, 68, 68, 0.40) !important;
+  color: rgba(239, 68, 68, 0.96) !important;
+}
+
+.friends-confirm-danger:hover{
+  background: rgba(239, 68, 68, 0.88) !important;
+  color: white !important;
+}

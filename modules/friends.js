@@ -110,120 +110,131 @@ setTab(tab) {
     });
   },
 
-  async refresh() {
-    try {
-      this._state.loading = true;
-      this.render();
+async refresh() {
+  // evita refresh sovrapposti che possono lasciare loading appeso
+  if (this._state.refreshBusy) return;
+  this._state.refreshBusy = true;
 
-      if (typeof Auth === 'undefined' || !Auth.client()) {
-        this._state.loading = false;
-        this.render();
-        return;
-      }
+  this._state.loading = true;
+  this.render();
 
-      if (!Auth.isLoggedIn()) {
-        this._state.loading = false;
-        this.render();
-        return;
-      }
-
-      // Sync stats (non obbligatorio ma utile)
-      if (typeof CloudSync !== 'undefined') {
-        CloudSync.pushMyStats(false);
-      }
-
-      const client = Auth.client();
-      const uid = Auth.userId();
-
-      // 1) mio profilo + friend_code
-      const { data: myProfile, error: meErr } = await client
-        .from('profiles')
-        .select('id, username, friend_code, level, xp, reps, streak')
-        .eq('id', uid)
-        .single();
-
-      if (meErr) {
-        console.warn('Friends: errore fetch profilo:', meErr.message);
-      } else {
-        this._state.myProfile = myProfile;
-        if (myProfile?.friend_code) Storage.save('friend_code', myProfile.friend_code);
-      }
-
-      // 2) richieste
-      const [incomingRes, outgoingRes] = await Promise.all([
-        client.from('friend_requests')
-          .select('id, from_id, to_id, status, created_at')
-          .eq('to_id', uid)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false }),
-
-        client.from('friend_requests')
-          .select('id, from_id, to_id, status, created_at')
-          .eq('from_id', uid)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-      ]);
-
-      const incoming = incomingRes.data || [];
-      const outgoing = outgoingRes.data || [];
-
-      // 3) friendships
-      const { data: frRows, error: frErr } = await client
-        .from('friendships')
-        .select('user_a, user_b, created_at')
-        .or(`user_a.eq.${uid},user_b.eq.${uid}`)
-        .order('created_at', { ascending: false });
-
-      if (frErr) console.warn('Friends: friendships error:', frErr.message);
-
-      const friendIds = (frRows || []).map(r => (r.user_a === uid ? r.user_b : r.user_a));
-      const incomingIds = incoming.map(r => r.from_id);
-      const outgoingIds = outgoing.map(r => r.to_id);
-
-      const idsToFetch = Array.from(new Set([...friendIds, ...incomingIds, ...outgoingIds].filter(Boolean)));
-
-      let profilesById = {};
-      if (idsToFetch.length) {
-        const { data: profs, error: pErr } = await client
-          .from('profiles')
-          .select('id, username, friend_code, level, xp, reps, streak')
-          .in('id', idsToFetch);
-
-        if (pErr) console.warn('Friends: profiles batch error:', pErr.message);
-
-        (profs || []).forEach(p => { profilesById[p.id] = p; });
-      }
-
-      // 4) costruisci UI models
-      const friends = friendIds.map(id => profilesById[id]).filter(Boolean);
-
-      const incomingUI = incoming.map(r => ({
-        id: r.id,
-        from: profilesById[r.from_id] || { id: r.from_id, username: 'Sconosciuto', friend_code: '—' },
-        created_at: r.created_at
-      }));
-
-      const outgoingUI = outgoing.map(r => ({
-        id: r.id,
-        to: profilesById[r.to_id] || { id: r.to_id, username: 'Sconosciuto', friend_code: '—' },
-        created_at: r.created_at
-      }));
-
-      this._state.friends = friends;
-      this._state.incoming = incomingUI;
-      this._state.outgoing = outgoingUI;
-
-      // cache per Profile.getCount()
-      Storage.save('friends_cache', friends);
-
+  // safety: se qualcosa resta appeso (mobile/cambio rete), sblocca comunque UI
+  const safety = setTimeout(() => {
+    if (this._state.loading) {
       this._state.loading = false;
-      this.render();
-    } catch (e) {
-      console.error('Friends.refresh error:', e);
-      this._state.loading = false;
+      this._state.refreshBusy = false;
       this.render();
     }
-  },
+  }, 12000);
+
+  try {
+    // Se Auth/Supabase non disponibile -> stop pulito
+    if (typeof Auth === 'undefined' || !Auth.client()) return;
+
+    // Se non loggato -> stop pulito
+    if (!Auth.isLoggedIn()) return;
+
+    // Sync stats (opzionale)
+    if (typeof CloudSync !== 'undefined') {
+      CloudSync.pushMyStats(false);
+    }
+
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!uid) return;
+
+    // 1) mio profilo
+    const { data: myProfile, error: meErr } = await client
+      .from('profiles')
+      .select('id, username, friend_code, level, xp, reps, streak')
+      .eq('id', uid)
+      .single();
+
+    if (meErr) {
+      console.warn('Friends.refresh: profilo error:', meErr.message);
+    } else {
+      this._state.myProfile = myProfile;
+      if (myProfile?.friend_code) Storage.save('friend_code', myProfile.friend_code);
+    }
+
+    // 2) richieste incoming/outgoing
+    const [incomingRes, outgoingRes] = await Promise.all([
+      client.from('friend_requests')
+        .select('id, from_id, to_id, status, created_at')
+        .eq('to_id', uid)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false }),
+
+      client.from('friend_requests')
+        .select('id, from_id, to_id, status, created_at')
+        .eq('from_id', uid)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+    ]);
+
+    const incoming = incomingRes.data || [];
+    const outgoing = outgoingRes.data || [];
+
+    // 3) amicizie
+    const { data: frRows, error: frErr } = await client
+      .from('friendships')
+      .select('user_a, user_b, created_at')
+      .or(`user_a.eq.${uid},user_b.eq.${uid}`)
+      .order('created_at', { ascending: false });
+
+    if (frErr) console.warn('Friends.refresh: friendships error:', frErr.message);
+
+    const friendIds = (frRows || []).map(r => (r.user_a === uid ? r.user_b : r.user_a));
+    const incomingIds = incoming.map(r => r.from_id);
+    const outgoingIds = outgoing.map(r => r.to_id);
+
+    const idsToFetch = Array.from(
+      new Set([...friendIds, ...incomingIds, ...outgoingIds].filter(Boolean))
+    );
+
+    // 4) profili coinvolti
+    let profilesById = {};
+    if (idsToFetch.length) {
+      const { data: profs, error: pErr } = await client
+        .from('profiles')
+        .select('id, username, friend_code, level, xp, reps, streak')
+        .in('id', idsToFetch);
+
+      if (pErr) console.warn('Friends.refresh: profiles batch error:', pErr.message);
+
+      (profs || []).forEach(p => { profilesById[p.id] = p; });
+    }
+
+    // 5) modelli UI
+    const friends = friendIds.map(id => profilesById[id]).filter(Boolean);
+
+    const incomingUI = incoming.map(r => ({
+      id: r.id,
+      from: profilesById[r.from_id] || { id: r.from_id, username: 'Sconosciuto', friend_code: '—' },
+      created_at: r.created_at
+    }));
+
+    const outgoingUI = outgoing.map(r => ({
+      id: r.id,
+      to: profilesById[r.to_id] || { id: r.to_id, username: 'Sconosciuto', friend_code: '—' },
+      created_at: r.created_at
+    }));
+
+    this._state.friends = friends;
+    this._state.incoming = incomingUI;
+    this._state.outgoing = outgoingUI;
+
+    Storage.save('friends_cache', friends);
+  } catch (e) {
+    console.error('Friends.refresh error:', e);
+    if (typeof showMessage !== 'undefined') showMessage('Sync error (controlla rete)', 'warning');
+  } finally {
+    clearTimeout(safety);
+    this._state.loading = false;
+    this._state.refreshBusy = false;
+    this.render();
+  }
+},
 
 render() {
   const content = document.getElementById('friends-content');
@@ -408,6 +419,53 @@ render() {
   `;
 },
 
+
+confirmPopup({ title = 'CONFERMA', message = '', okText = 'OK', cancelText = 'ANNULLA', danger = false } = {}) {
+  return new Promise((resolve) => {
+    // evita doppioni
+    const existing = document.getElementById('friends-confirm-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'friends-confirm-overlay';
+
+    overlay.innerHTML = `
+      <div class="friends-confirm-card" role="dialog" aria-modal="true">
+        <div class="friends-confirm-head">
+          <h3 class="friends-confirm-title">${title}</h3>
+        </div>
+        <div class="friends-confirm-body">${message}</div>
+        <div class="friends-confirm-actions">
+          <button class="manual-btn friends-btn-ghost" id="friends-confirm-cancel">${cancelText}</button>
+          <button class="manual-btn ${danger ? 'friends-confirm-danger' : ''}" id="friends-confirm-ok">${okText}</button>
+        </div>
+      </div>
+    `;
+
+    const cleanup = (value) => {
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+      resolve(value);
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+    };
+
+    document.addEventListener('keydown', onKey);
+
+    overlay.addEventListener('click', (e) => {
+      // click fuori dalla card = cancel
+      if (e.target === overlay) cleanup(false);
+    });
+
+    overlay.querySelector('#friends-confirm-cancel').onclick = () => cleanup(false);
+    overlay.querySelector('#friends-confirm-ok').onclick = () => cleanup(true);
+
+    document.body.appendChild(overlay);
+  });
+},
+
   async _login() {
     const email = (document.getElementById('auth-email')?.value || '').trim();
     const pass = (document.getElementById('auth-pass')?.value || '').trim();
@@ -420,7 +478,11 @@ render() {
     this.refresh();
   },
 
-  async _signup() {
+async _signup() {
+  if (this._state.authBusy) return;
+  this._state.authBusy = true;
+
+  try {
     const email = (document.getElementById('auth-email')?.value || '').trim();
     const pass = (document.getElementById('auth-pass')?.value || '').trim();
     if (!email || !pass) { showMessage('Inserisci email + password', 'warning'); return; }
@@ -428,9 +490,12 @@ render() {
     const res = await Auth.signUp(email, pass);
     if (!res.ok) { showMessage(res.error || 'Signup error', 'negative'); return; }
 
-    showMessage('Account creato! (se hai conferma email attiva, controlla la mail)', 'positive');
+    showMessage('Account creato!', 'positive');
     this.refresh();
-  },
+  } finally {
+    this._state.authBusy = false;
+  }
+},
 
 togglePassword() {
   const input = document.getElementById('auth-pass');
@@ -448,88 +513,61 @@ togglePassword() {
     this.render();
   },
 
-  async sendRequest() {
-    try {
-      if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
+async sendRequest() {
+  try {
+    if (this._state.requestBusy) return;
+    this._state.requestBusy = true;
 
-      const input = document.getElementById('friend-id-input');
-      const raw = (input?.value || '').trim().toUpperCase();
-      if (!raw) { showMessage('Inserisci un codice amico', 'warning'); return; }
+    if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
 
-      const myCode = this.getMyId();
-      if (raw === myCode) { showMessage('Non puoi aggiungerti da solo', 'warning'); return; }
+    const input = document.getElementById('friend-id-input');
+    const raw = (input?.value || '').trim().toUpperCase();
+    if (!raw) { showMessage('Inserisci un codice amico', 'warning'); return; }
 
-      const client = Auth.client();
-      const uid = Auth.userId();
+    const myCode = this.getMyId();
+    if (raw === myCode) { showMessage('Non puoi aggiungerti da solo', 'warning'); return; }
 
-      // trova profilo target via friend_code
-const { data: target, error: tErr } = await client
-  .from('profiles')
-  .select('id, username, friend_code')
-  .eq('friend_code', raw)
-  .maybeSingle();
+    const client = Auth.client();
+    if (!client) { showMessage('Client non pronto', 'negative'); return; }
 
-if (tErr) { showMessage(tErr.message || 'Errore lookup profilo', 'negative'); return; }
-if (!target) { showMessage('Codice non trovato', 'negative'); return; }
+    // UI feedback
+    this._state.loading = true;
+    this.render();
 
-      // evita se già amici (soft check)
-      const { data: frRows } = await client
-        .from('friendships')
-        .select('user_a, user_b')
-        .or(`user_a.eq.${uid},user_b.eq.${uid}`);
+    const { data, error } = await client.rpc('send_friend_request_by_code', { target_code: raw });
 
-      const already = (frRows || []).some(r => (r.user_a === target.id || r.user_b === target.id));
-      if (already) { showMessage('Siete già amici', 'warning'); return; }
-
-      const { error } = await client
-        .from('friend_requests')
-        .insert({ from_id: uid, to_id: target.id, status: 'pending' });
-
-      if (error) {
-        showMessage(error.message.includes('duplicate') ? 'Richiesta già inviata' : error.message, 'warning');
-        return;
-      }
-
-      if (input) input.value = '';
-      showMessage(`Richiesta inviata a ${target.username || raw}`, 'positive');
-      this.refresh();
-    } catch (e) {
-      console.error('sendRequest error:', e);
-      showMessage('Errore invio richiesta', 'negative');
+    if (error) {
+      console.error('send_friend_request_by_code error:', error);
+      showMessage(error.message || 'Errore invio richiesta', 'negative');
+      return;
     }
-  },
 
-  async acceptRequest(requestId, fromId) {
-    try {
-      const client = Auth.client();
-      const uid = Auth.userId();
-
-      // aggiorna richiesta
-      const { error: upErr } = await client
-        .from('friend_requests')
-        .update({ status: 'accepted' })
-        .eq('id', requestId)
-        .eq('to_id', uid);
-
-      if (upErr) { showMessage(upErr.message, 'negative'); return; }
-
-      // crea amicizia (ordine canonico per evitare doppi)
-      const a = (fromId < uid) ? fromId : uid;
-      const b = (fromId < uid) ? uid : fromId;
-
-      const { error: insErr } = await client
-        .from('friendships')
-        .upsert({ user_a: a, user_b: b }, { onConflict: 'user_a,user_b' });
-
-      if (insErr) { showMessage(insErr.message, 'negative'); return; }
-
-      showMessage('Amico aggiunto!', 'positive');
-      this.refresh();
-    } catch (e) {
-      console.error('acceptRequest error:', e);
-      showMessage('Errore accettazione', 'negative');
+    if (!data || data.ok !== true) {
+      const reason = data?.reason;
+      if (reason === 'not_found') showMessage('Codice non trovato', 'negative');
+      else if (reason === 'self') showMessage('Non puoi aggiungerti da solo', 'warning');
+      else showMessage('Operazione non riuscita', 'negative');
+      return;
     }
-  },
+
+    if (input) input.value = '';
+
+    if (data.action === 'accepted') {
+      showMessage('Richiesta trovata: amicizia creata ✅', 'positive');
+    } else {
+      showMessage('Richiesta inviata', 'positive');
+    }
+
+    this.refresh();
+  } catch (e) {
+    console.error('sendRequest error:', e);
+    showMessage('Errore invio richiesta', 'negative');
+  } finally {
+    this._state.requestBusy = false;
+    this._state.loading = false;
+    this.render();
+  }
+},
 
   async rejectRequest(requestId) {
     try {
@@ -570,32 +608,55 @@ if (!target) { showMessage('Codice non trovato', 'negative'); return; }
     }
   },
 
-  async removeFriend(friendId) {
-    try {
-      if (!confirm('Rimuovere questo amico?')) return;
+async removeFriend(friendId) {
+  try {
+    const ok = await this.confirmPopup({
+      title: 'RIMUOVI AMICO',
+      message: 'Sei sicuro? Questa azione rimuove l’amicizia da entrambi i lati.',
+      okText: 'RIMUOVI',
+      cancelText: 'ANNULLA',
+      danger: true
+    });
+    if (!ok) return;
 
-      const client = Auth.client();
-      const uid = Auth.userId();
+    const client = Auth.client();
+    if (!client) { showMessage('Client non pronto', 'negative'); return; }
 
-      const a = (friendId < uid) ? friendId : uid;
-      const b = (friendId < uid) ? uid : friendId;
+    // piccolo feedback UI (evita spam-click)
+    this._state.loading = true;
+    this.render();
 
-      const { error } = await client
-        .from('friendships')
-        .delete()
-        .eq('user_a', a)
-        .eq('user_b', b);
+    const { data, error } = await client.rpc('remove_friend', { other_id: friendId });
 
-      if (error) { showMessage(error.message, 'negative'); return; }
-
-      showMessage('Amico rimosso', 'warning');
-      this._backToList();
-      this.refresh();
-    } catch (e) {
-      console.error('removeFriend error:', e);
-      showMessage('Errore rimozione', 'negative');
+    if (error) {
+      console.error('remove_friend rpc error:', error);
+      showMessage(error.message || 'Errore rimozione', 'negative');
+      return;
     }
-  },
+
+    const deletedCount = Number(data || 0);
+    if (deletedCount <= 0) {
+      showMessage('Non rimossa (0 righe cancellate). Riprova dopo sync.', 'warning');
+      return;
+    }
+
+    // optimistic UI
+    if (Array.isArray(this._state.friends)) {
+      this._state.friends = this._state.friends.filter(f => f && f.id !== friendId);
+      Storage.save('friends_cache', this._state.friends);
+    }
+
+    showMessage('AMICO RIMOSSO', 'warning');
+    this._backToList();
+  } catch (e) {
+    console.error('removeFriend error:', e);
+    showMessage('Errore rimozione', 'negative');
+  } finally {
+    this._state.loading = false;
+    this.render();
+    this.refresh(); // riallinea da DB
+  }
+},
 
   async openFriendProfile(friendId) {
     try {
