@@ -43,43 +43,56 @@ const Friends = {
   },
 
 open() {
-  // evita doppi overlay
+
   const existing = document.getElementById('friends-overlay');
   if (existing) existing.remove();
+
+  if (!this._state) this._state = {};
+  if (!this._state.tab) this._state.tab = 'friends';
+  if (!this._state.view) this._state.view = 'list';
 
   const overlay = document.createElement('div');
   overlay.id = 'friends-overlay';
 
   overlay.innerHTML = `
     <div id="friends-panel">
-      <div class="friends-panel-header">
-        <div>
-          <h2>👥 AMICI</h2>
-          <p class="friends-panel-subtitle">Collabora e cresci insieme</p>
+      <div class="friends-header">
+        <div class="friends-title">
+          <h2>AMICI</h2>
+          <p class="friends-subtitle">Protox network: richieste, stats, squad</p>
         </div>
-        <button class="friends-close-btn" onclick="Friends.close()">✕</button>
+        <button class="friends-icon-btn" onclick="Friends.close()">✕</button>
       </div>
       <div id="friends-content"></div>
     </div>
   `;
 
+  // click fuori = chiude
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) this.close();
+  });
+
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
   this.render();
-  this.refresh(); // lascia questo: serve ai dati
+  this.refresh();
 },
 
 close() {
   const overlay = document.getElementById('friends-overlay');
   if (!overlay) return;
 
-  overlay.style.animation = 'friendsOut 0.22s ease forwards';
-
+  overlay.style.animation = 'friendsOut 0.18s ease forwards';
   setTimeout(() => {
     overlay.remove();
     document.body.style.overflow = '';
-  }, 220);
+  }, 180);
+},
+
+setTab(tab) {
+  this._state.tab = tab;
+  this.render();
 },
 
   copyId() {
@@ -216,198 +229,185 @@ render() {
   const content = document.getElementById('friends-content');
   if (!content) return;
 
-  // Se Auth/Supabase non è disponibile: fallback
+  // fallback
   if (typeof Auth === 'undefined' || !Auth.client()) {
     content.innerHTML = `
       <div class="section-card">
         <div class="section-card-header">
-          <h3> BACKEND</h3>
+          <h3>BACKEND</h3>
         </div>
-        <p class="friends-note">
-          Backend non configurato. Devi settare <b>modules/supabase-config.js</b> (url + anonKey).
-        </p>
-      </div>
-
-      <div class="section-card">
-        <div class="section-card-header">
-          <h3>🆔 CODICE (fallback locale)</h3>
+        <p class="friends-subtitle">Configura <b>modules/supabase-config.js</b> (url + anonKey).</p>
+        <div class="friends-topbar" style="margin-top:12px">
+          <div class="friends-code">
+            <div class="friends-code-pill">${this.getMyId()}</div>
+          </div>
           <button class="manual-btn" onclick="Friends.copyId()">COPIA</button>
         </div>
-        <div style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-weight:900; font-size:1.1rem;">
-          ${this.getMyId()}
-        </div>
-        <p class="friends-note">Questo è solo locale finché non attivi il backend.</p>
       </div>
     `;
     return;
   }
 
-  // Non loggato -> form login/signup (stile card)
+  // NOT LOGGED
   if (!Auth.isLoggedIn()) {
     content.innerHTML = `
       <div class="section-card">
         <div class="section-card-header">
-          <h3>🔐 ACCESSO</h3>
+          <h3>ACCESSO</h3>
         </div>
 
-        <label class="friends-label">EMAIL</label>
+        <label class="friends-meta" style="display:block; margin:10px 0 6px">EMAIL</label>
         <input id="auth-email" type="email" class="manual-input" placeholder="you@email.com" autocomplete="email"/>
 
-        <div style="height:10px"></div>
-
-        <label class="friends-label">PASSWORD</label>
-        <input id="auth-pass" type="password" class="manual-input" placeholder="••••••••" autocomplete="current-password"/>
-
-        <div class="friends-actions">
-          <button class="manual-btn" onclick="Friends._login()">LOGIN</button>
-          <button class="manual-btn friends-btn-ghost" onclick="Friends._signup()">SIGN UP</button>
+        <label class="friends-meta" style="display:block; margin:10px 0 6px">PASSWORD</label>
+        <div style="display:flex; gap:10px; align-items:center">
+          <input id="auth-pass" type="password" class="manual-input" placeholder="••••••••" autocomplete="current-password" style="flex:1; margin:0"/>
+          <button id="toggle-pass-btn" class="manual-btn" onclick="Friends.togglePassword()">MOSTRA</button>
         </div>
 
-        <p class="friends-note">
-          Dopo il login avrai un <b>codice PX</b> vero (cloud) e amici condivisi su più dispositivi.
+        <div style="display:flex; gap:10px; margin-top:12px">
+          <button class="manual-btn" style="flex:1" onclick="Friends._login()">LOGIN</button>
+          <button class="manual-btn" style="flex:1" onclick="Friends._signup()">SIGN UP</button>
+        </div>
+
+        <p class="friends-subtitle" style="margin-top:10px">
+          Login = friend code cloud + amicizie vere + stats condivise.
         </p>
       </div>
     `;
     return;
   }
 
-  // Friend profile view (se la tua versione usa _state.view)
+  // FRIEND PROFILE VIEW
   if (this._state?.view === 'friend' && this._state.friendProfile) {
     const f = this._state.friendProfile;
 
     content.innerHTML = `
-      <div class="section-card">
-        <div class="section-card-header">
-          <h3> PROFILO AMICO</h3>
-          <button class="manual-btn friends-btn-ghost" onclick="Friends._backToList()">← TORNA</button>
+      <div class="friends-topbar">
+        <div class="friends-code">
+          <div>
+            <div class="friends-name" style="font-size:1.05rem">${f.username || 'Player'}</div>
+            <div class="friends-meta">${f.friend_code || ''}</div>
+          </div>
         </div>
+        <button class="manual-btn" onclick="Friends._backToList()">←</button>
+      </div>
 
-        <div style="font-weight:900; font-size:1.05rem">${f.username || 'Player'}</div>
-        <div class="friends-code" style="margin-top:4px">${f.friend_code || ''}</div>
+      <div class="friends-stat-grid">
+        <div class="friends-stat"><div class="label">LEVEL</div><div class="value">${(f.level ?? 1)}</div></div>
+        <div class="friends-stat"><div class="label">STREAK</div><div class="value">${(f.streak ?? 0)}</div></div>
+        <div class="friends-stat"><div class="label">XP</div><div class="value">${(f.xp ?? 0).toLocaleString()}</div></div>
+        <div class="friends-stat"><div class="label">REPS</div><div class="value">${(f.reps ?? 0).toLocaleString()}</div></div>
+      </div>
 
-        <div class="friends-stat-grid">
-          <div class="friends-stat"><div class="label">LEVEL</div><div class="value">${(f.level ?? 1)}</div></div>
-          <div class="friends-stat"><div class="label">STREAK</div><div class="value">${(f.streak ?? 0)}</div></div>
-          <div class="friends-stat"><div class="label">XP</div><div class="value">${(f.xp ?? 0).toLocaleString()}</div></div>
-          <div class="friends-stat"><div class="label">REPS</div><div class="value">${(f.reps ?? 0).toLocaleString()}</div></div>
-        </div>
-
-        <div class="friends-actions" style="margin-top:14px">
-          <button class="manual-btn friends-btn-red" onclick="Friends.removeFriend('${f.id}')">RIMUOVI AMICO</button>
-        </div>
+      <div style="margin-top:12px">
+        <button class="manual-btn" style="width:100%" onclick="Friends.removeFriend('${f.id}')">RIMUOVI AMICO</button>
       </div>
     `;
     return;
   }
 
-  // List view (loggato)
+  // LOGGED LIST VIEW
   const myCode = this.getMyId();
-  const myEmail = Auth.email();
+  const tab = this._state.tab || 'friends';
 
   content.innerHTML = `
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>👤 ACCOUNT</h3>
-        <button class="manual-btn friends-btn-ghost"
-          onclick="Auth.signOut().then(()=>{showMessage('Logout', 'warning'); Friends.refresh();})">
-          LOGOUT
-        </button>
-      </div>
-      <div style="font-weight:800">${myEmail || ''}</div>
-      <p class="friends-note">Le tue stats vengono sincronizzate per renderle visibili agli amici.</p>
-    </div>
-
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>🆔 CODICE AMICO</h3>
+    <div class="friends-topbar">
+      <div class="friends-code">
+        <div class="friends-code-pill">${myCode}</div>
         <button class="manual-btn" onclick="Friends.copyId()">COPIA</button>
       </div>
-
-      <div style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-weight:900; font-size:1.1rem;">
-        ${myCode}
-      </div>
-
-      <p class="friends-note">Condividilo con chi vuoi aggiungere.</p>
+      <button class="manual-btn" onclick="Auth.signOut().then(()=>{showMessage('Logout', 'warning'); Friends.refresh();})">LOGOUT</button>
     </div>
 
-    <div class="section-card">
-      <h3>➕ AGGIUNGI AMICO</h3>
-      <div class="friends-row">
-        <input id="friend-id-input" class="manual-input" placeholder="PX-........" autocomplete="off"/>
-        <button class="manual-btn" onclick="Friends.sendRequest()">INVIA</button>
-      </div>
-      <p class="friends-note">Incolla il codice PX del tuo amico.</p>
+    <div class="friends-tabs">
+      <button class="friends-tab ${tab==='friends'?'active':''}" onclick="Friends.setTab('friends')">
+        AMICI <span class="friends-badge">${this._state.friends.length}</span>
+      </button>
+      <button class="friends-tab ${tab==='incoming'?'active':''}" onclick="Friends.setTab('incoming')">
+        RICHIESTE <span class="friends-badge">${this._state.incoming.length}</span>
+      </button>
+      <button class="friends-tab ${tab==='add'?'active':''}" onclick="Friends.setTab('add')">
+        AGGIUNGI <span class="friends-badge">${this._state.outgoing.length}</span>
+      </button>
     </div>
 
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>📨 RICHIESTE</h3>
-        <span class="friends-meta">${this._state.incoming.length}</span>
-      </div>
+    ${
+      tab === 'add' ? `
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header">
+            <h3>INVIA RICHIESTA</h3>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center">
+            <input id="friend-id-input" class="manual-input" placeholder="PX-........" autocomplete="off" style="flex:1; margin:0"/>
+            <button class="manual-btn" onclick="Friends.sendRequest()">INVIA</button>
+          </div>
 
-      ${
-        this._state.incoming.length === 0
-          ? `<p class="friends-note">Nessuna richiesta in arrivo.</p>`
-          : this._state.incoming.map(r => `
-              <div class="friends-item" style="cursor:default">
-                <div class="friends-item-left">
-                  <div class="friends-name">${r.from.username || 'Player'}</div>
-                  <div class="friends-code">${r.from.friend_code || ''}</div>
-                </div>
-                <div style="display:flex; gap:8px">
-                  <button class="manual-btn" onclick="Friends.acceptRequest('${r.id}','${r.from.id}')">OK</button>
-                  <button class="manual-btn friends-btn-red" onclick="Friends.rejectRequest('${r.id}')">NO</button>
-                </div>
-              </div>
-            `).join('')
-      }
-    </div>
-
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>⏳ INVIATE</h3>
-        <span class="friends-meta">${this._state.outgoing.length}</span>
-      </div>
-
-      ${
-        this._state.outgoing.length === 0
-          ? `<p class="friends-note">Nessuna richiesta inviata.</p>`
-          : this._state.outgoing.map(r => `
-              <div class="friends-item" style="cursor:default">
-                <div class="friends-item-left">
+          <div class="friends-list">
+            ${(this._state.outgoing.length === 0) ? `<div class="friends-subtitle">Nessuna richiesta inviata.</div>` : ``}
+            ${this._state.outgoing.map(r => `
+              <div class="friends-item">
+                <div class="friends-left">
                   <div class="friends-name">${r.to.username || 'Player'}</div>
-                  <div class="friends-code">${r.to.friend_code || ''}</div>
+                  <div class="friends-meta">${r.to.friend_code || ''}</div>
                 </div>
-                <button class="manual-btn friends-btn-ghost" onclick="Friends.cancelRequest('${r.id}')">ANNULLA</button>
+                <div class="friends-right">
+                  <button class="manual-btn" onclick="Friends.cancelRequest('${r.id}')">ANNULLA</button>
+                </div>
               </div>
-            `).join('')
-      }
-    </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : tab === 'incoming' ? `
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header">
+            <h3>RICHIESTE IN ARRIVO</h3>
+          </div>
 
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>🤝 AMICI</h3>
-        <span class="friends-meta">${this._state.friends.length}</span>
-      </div>
+          <div class="friends-list">
+            ${(this._state.incoming.length === 0) ? `<div class="friends-subtitle">Nessuna richiesta.</div>` : ``}
+            ${this._state.incoming.map(r => `
+              <div class="friends-item">
+                <div class="friends-left">
+                  <div class="friends-name">${r.from.username || 'Player'}</div>
+                  <div class="friends-meta">${r.from.friend_code || ''}</div>
+                </div>
+                <div class="friends-right">
+                  <button class="manual-btn" onclick="Friends.acceptRequest('${r.id}','${r.from.id}')">OK</button>
+                  <button class="manual-btn" onclick="Friends.rejectRequest('${r.id}')">NO</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : `
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header">
+            <h3>LISTA AMICI</h3>
+          </div>
 
-      ${
-        this._state.friends.length === 0
-          ? `<p class="friends-note">Nessun amico ancora. Inizia inviando una richiesta.</p>`
-          : this._state.friends.map(f => `
-              <div class="friends-item" onclick="Friends.openFriendProfile('${f.id}')">
-                <div class="friends-item-left">
+          <div class="friends-list">
+            ${(this._state.friends.length === 0) ? `<div class="friends-subtitle">Nessun amico ancora.</div>` : ``}
+            ${this._state.friends.map(f => `
+              <div class="friends-item clickable" onclick="Friends.openFriendProfile('${f.id}')">
+                <div class="friends-left">
                   <div class="friends-name">${f.username || 'Player'}</div>
-                  <div class="friends-code">${f.friend_code || ''}</div>
+                  <div class="friends-meta">${f.friend_code || ''}</div>
                 </div>
-                <div class="friends-meta">Lv.${f.level ?? 1} →</div>
+                <div class="friends-right">
+                  <div class="friends-meta">Lv.${f.level ?? 1}</div>
+                </div>
               </div>
-            `).join('')
-      }
+            `).join('')}
+          </div>
 
-      ${this._state.loading ? `<p class="friends-note">Sync in corso...</p>` : ``}
-    </div>
+          ${this._state.loading ? `<div class="friends-subtitle" style="margin-top:10px">Sync in corso...</div>` : ``}
+        </div>
+      `
+    }
   `;
 },
+
   async _login() {
     const email = (document.getElementById('auth-email')?.value || '').trim();
     const pass = (document.getElementById('auth-pass')?.value || '').trim();
@@ -432,6 +432,16 @@ render() {
     this.refresh();
   },
 
+togglePassword() {
+  const input = document.getElementById('auth-pass');
+  const btn = document.getElementById('toggle-pass-btn');
+  if (!input) return;
+
+  const hidden = input.type === 'password';
+  input.type = hidden ? 'text' : 'password';
+  if (btn) btn.textContent = hidden ? 'NASCONDI' : 'MOSTRA';
+},
+
   _backToList() {
     this._state.view = 'list';
     this._state.friendProfile = null;
@@ -453,14 +463,14 @@ render() {
       const uid = Auth.userId();
 
       // trova profilo target via friend_code
-      const { data: target, error: tErr } = await client
-        .from('profiles')
-        .select('id, username, friend_code')
-        .eq('friend_code', raw)
-        .single();
+const { data: target, error: tErr } = await client
+  .from('profiles')
+  .select('id, username, friend_code')
+  .eq('friend_code', raw)
+  .maybeSingle();
 
-      if (tErr || !target) { showMessage('Codice non trovato', 'negative'); return; }
-      if (target.id === uid) { showMessage('Non puoi aggiungerti da solo', 'warning'); return; }
+if (tErr) { showMessage(tErr.message || 'Errore lookup profilo', 'negative'); return; }
+if (!target) { showMessage('Codice non trovato', 'negative'); return; }
 
       // evita se già amici (soft check)
       const { data: frRows } = await client

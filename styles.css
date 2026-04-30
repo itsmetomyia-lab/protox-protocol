@@ -5551,3 +5551,314 @@ body.theme-custom {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(14px); }
 }
+/* =========================================================
+   FRIENDS MODAL — POLISHED (Protox-style)
+   ========================================================= */
+
+#friends-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding:
+    max(14px, env(safe-area-inset-top))
+    14px
+    max(14px, env(safe-area-inset-bottom));
+
+  background:
+    radial-gradient(1200px 800px at 50% 15%, rgba(139, 92, 246, 0.24), transparent 55%),
+    rgba(0,0,0,0.78);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  animation: friendsIn 0.18s ease;
+}
+
+#friends-panel{
+  width: min(92vw, 760px);
+  max-height: min(86svh, 880px);
+
+  display: flex;
+  flex-direction: column;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  overflow: hidden;
+
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.18) inset,
+    0 20px 60px rgba(0,0,0,0.55),
+    0 0 40px rgba(139,92,246,0.18);
+}
+
+.friends-header{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 14px 12px;
+
+  background: rgba(10,10,14,0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.friends-title{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.friends-title h2{
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 18px var(--purple-glow);
+}
+
+.friends-subtitle{
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.friends-icon-btn{
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.friends-icon-btn:hover{
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 16px rgba(139,92,246,0.20);
+  transform: translateY(-1px);
+}
+
+#friends-content{
+  padding: 14px;
+  overflow: auto;
+  flex: 1;
+}
+
+/* Top bar (logged) */
+.friends-topbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 12px;
+  border-radius: 16px;
+
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.16);
+}
+
+.friends-code{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.friends-code-pill{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+  color: #fff;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tabs */
+.friends-tabs{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.friends-tab{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-dim);
+  padding: 10px 10px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.friends-tab.active{
+  color: #fff;
+  border-color: rgba(139,92,246,0.35);
+  background: rgba(139,92,246,0.12);
+  box-shadow: 0 0 18px rgba(139,92,246,0.18);
+}
+
+.friends-badge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+
+  padding: 4px 8px;
+  border-radius: 999px;
+
+  color: var(--purple-main);
+  border: 1px solid rgba(139,92,246,0.25);
+  background: rgba(139,92,246,0.10);
+}
+
+/* Lists */
+.friends-list{
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.friends-item{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 12px;
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+
+  transition: all 0.18s ease;
+}
+
+.friends-item.clickable{
+  cursor: pointer;
+}
+
+.friends-item.clickable:hover{
+  border-color: rgba(139,92,246,0.28);
+  background: rgba(139,92,246,0.06);
+  transform: translateY(-1px);
+}
+
+.friends-left{
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.friends-name{
+  font-weight: 900;
+  color: #fff;
+  font-size: 0.98rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friends-meta{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.friends-right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Friend profile stats */
+.friends-stat-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.friends-stat{
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+}
+
+.friends-stat .label{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.friends-stat .value{
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: white;
+}
+
+@keyframes friendsIn{
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes friendsOut{
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(10px); }
+}
+
+/* Mobile */
+@media (max-width: 520px){
+  #friends-panel{
+    width: 100%;
+    max-height: calc(100svh - max(14px, env(safe-area-inset-top)) - max(14px, env(safe-area-inset-bottom)));
+    border-radius: 16px;
+  }
+  #friends-content{
+    padding: 12px;
+  }
+}
