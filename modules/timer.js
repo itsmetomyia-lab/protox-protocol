@@ -25,6 +25,35 @@ const Timer = {
         { label: '60 min', seconds: 3600 }
     ],
 
+    smartStart() {
+  if (this.isRunning) return;
+
+  // Se avevi selezionato un countdown prima, riparte quello
+  if (this.mode === 'countdown' && this.countdownFrom > 0) {
+    this.startCountdown(this.countdownFrom);
+    return;
+  }
+
+  // Altrimenti: stopwatch
+  this.startStopwatch();
+},
+
+startCustomCountdown() {
+  const input = document.getElementById('timer-custom-mins');
+  const mins = parseInt(input?.value || '0', 10);
+
+  if (!mins || mins < 1) {
+    showMessage('Inserisci minuti validi (>= 1)', 'warning');
+    return;
+  }
+  if (mins > 240) {
+    showMessage('Massimo 240 min', 'warning');
+    return;
+  }
+
+  this.startCountdown(mins * 60);
+},
+
     // Avvia cronometro libero
     startStopwatch() {
         if (this.isRunning) return;
@@ -214,6 +243,20 @@ const Timer = {
             pauseBtn.onclick = () => this.isPaused ? this.resume() : this.pause();
         }
         if (stopBtn) stopBtn.style.display = this.isRunning ? 'flex' : 'none';
+        const modeBadge = document.getElementById('timer-mode-badge');
+if (modeBadge) modeBadge.textContent = (this.mode === 'countdown' ? 'COUNTDOWN' : 'LIBERO');
+
+const status = document.getElementById('timer-status');
+if (status) {
+  const state = this.isRunning ? (this.isPaused ? 'PAUSA' : 'RUNNING') : 'READY';
+  status.textContent = state;
+
+  status.className = 'timer-badge timer-badge-state ' + (
+    state === 'RUNNING' ? 'state-running' :
+    state === 'PAUSA' ? 'state-paused' :
+    'state-ready'
+  );
+}
     },
 
     // Cronologia sessioni
@@ -228,44 +271,76 @@ const Timer = {
 
         const sessions = this.getHistory();
 
-        container.innerHTML = `
-            <!-- TIMER DISPLAY -->
-            <div class="timer-circle">
-                <svg class="timer-ring" width="200" height="200">
-                    <circle class="timer-ring-bg" cx="100" cy="100" r="90" />
-                    <circle class="timer-ring-progress" id="timer-ring-progress" cx="100" cy="100" r="90" />
-                </svg>
-                <span class="timer-time" id="timer-display">00:00</span>
-            </div>
+container.innerHTML = `
+  <div class="timer-premium">
 
-            <!-- PRESET BUTTONS -->
-            <div class="timer-presets">
-                <button class="preset-btn" onclick="Timer.startStopwatch()">⏱️ Libero</button>
-                ${this.presets.map(p => `
-                    <button class="preset-btn" onclick="Timer.startCountdown(${p.seconds})">${p.label}</button>
-                `).join('')}
-            </div>
+    <div class="timer-topbar">
+      <div>
+        <div class="timer-kicker">SESSIONE</div>
+        <div class="timer-sub">Stopwatch o countdown (+ XP se completi)</div>
+      </div>
 
-            <!-- CONTROL BUTTONS -->
-            <div class="timer-controls">
-                <button class="timer-ctrl-btn start" id="timer-start" onclick="Timer.startStopwatch()">▶ AVVIA</button>
-                <button class="timer-ctrl-btn pause" id="timer-pause" style="display:none" onclick="Timer.pause()">⏸ PAUSA</button>
-                <button class="timer-ctrl-btn stop" id="timer-stop" style="display:none" onclick="Timer.stop()">⏹ STOP</button>
-            </div>
+      <div class="timer-badges">
+        <span class="timer-badge" id="timer-mode-badge">${this.mode === 'countdown' ? 'COUNTDOWN' : 'LIBERO'}</span>
+        <span class="timer-badge timer-badge-state state-ready" id="timer-status">READY</span>
+      </div>
+    </div>
 
-            <!-- CRONOLOGIA -->
-            <div class="timer-history">
-                <h3>📋 Ultime Sessioni</h3>
-                ${sessions.length === 0 ? '<p class="empty-text">Nessuna sessione ancora</p>' : ''}
-                ${sessions.slice(0, 10).map(s => `
-                    <div class="session-item">
-                        <span class="session-date">${s.date} ${s.time}</span>
-                        <span class="session-duration">${this.formatTime(s.duration)}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+    <!-- TIMER DISPLAY -->
+    <div class="timer-circle premium-ring">
+      <svg class="timer-ring" width="200" height="200">
+        <circle class="timer-ring-bg" cx="100" cy="100" r="90" />
+        <circle class="timer-ring-progress" id="timer-ring-progress" cx="100" cy="100" r="90" />
+      </svg>
 
-        this.updateButtons();
+      <span class="timer-time" id="timer-display">00:00</span>
+    </div>
+
+    <!-- PRESET BUTTONS -->
+    <div class="timer-presets">
+      <button class="preset-btn" onclick="Timer.startStopwatch()">⏱️ Libero</button>
+      ${this.presets.map(p => `
+        <button class="preset-btn" onclick="Timer.startCountdown(${p.seconds})">${p.label}</button>
+      `).join('')}
+    </div>
+
+    <!-- CUSTOM MINUTES -->
+    <div class="timer-custom-row">
+      <input id="timer-custom-mins" class="manual-input" type="number" min="1" max="240" placeholder="Minuti custom (es. 12)" />
+      <button class="preset-btn" onclick="Timer.startCustomCountdown()">START</button>
+    </div>
+
+    <!-- CONTROL BUTTONS -->
+    <div class="timer-controls">
+      <button class="timer-ctrl-btn start" id="timer-start" onclick="Timer.smartStart()">▶ AVVIA</button>
+
+      <button class="timer-ctrl-btn pause" id="timer-pause" style="display:none" onclick="Timer.pause()">⏸ PAUSA</button>
+      <button class="timer-ctrl-btn stop" id="timer-stop" style="display:none" onclick="Timer.stop()">⏹ STOP</button>
+    </div>
+
+    <!-- CRONOLOGIA -->
+    <div class="timer-history">
+      <div class="timer-history-head">
+        <h3>ULTIME SESSIONI</h3>
+        <span class="timer-history-count">
+  ${sessions.length === 0 ? 'NESSUNA' : ('RECENTI ' + Math.min(sessions.length, 10) + '/' + sessions.length)}
+</span>
+      </div>
+
+${sessions.length === 0 ? '<p class="empty-text">Nessuna sessione ancora. Avvia e ferma dopo 1+ minuto per salvarla.</p>' : ''}
+
+      ${sessions.slice(0, 10).map(s => `
+        <div class="session-item">
+          <span class="session-date">${s.date} ${s.time}</span>
+          <span class="session-duration">${this.formatTime(s.duration)}</span>
+        </div>
+      `).join('')}
+    </div>
+
+  </div>
+`;
+
+this.updateDisplay();
+this.updateButtons();
     }
 };

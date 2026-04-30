@@ -590,6 +590,49 @@ async sendRequest() {
     }
   },
 
+async acceptRequest(requestId, fromId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) { showMessage('Sessione non valida', 'negative'); return; }
+
+    this._state.loading = true;
+    this.render();
+
+    // 1) accetta richiesta (solo se è indirizzata a me)
+    const { data: updated, error: upErr } = await client
+      .from('friend_requests')
+      .update({ status: 'accepted' })
+      .eq('id', requestId)
+      .eq('to_id', uid)
+      .select('id')
+      .maybeSingle();
+
+    if (upErr) { showMessage(upErr.message || 'Errore accettazione', 'negative'); return; }
+    if (!updated?.id) { showMessage('Richiesta non valida o già gestita', 'warning'); return; }
+
+    // 2) crea amicizia (ordine canonico per evitare duplicati)
+    const a = (fromId < uid) ? fromId : uid;
+    const b = (fromId < uid) ? uid : fromId;
+
+    const { error: insErr } = await client
+      .from('friendships')
+      .upsert({ user_a: a, user_b: b }, { onConflict: 'user_a,user_b' });
+
+    if (insErr) { showMessage(insErr.message || 'Errore creazione amicizia', 'negative'); return; }
+
+    showMessage('AMICO AGGIUNTO ✅', 'positive');
+    this.refresh();
+  } catch (e) {
+    console.error('acceptRequest error:', e);
+    showMessage('Errore accettazione', 'negative');
+  } finally {
+    this._state.loading = false;
+    this.render();
+  }
+},
+
+
   async cancelRequest(requestId) {
     try {
       const client = Auth.client();

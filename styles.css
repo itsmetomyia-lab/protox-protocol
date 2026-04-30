@@ -6306,3 +6306,722 @@ body.theme-custom {
   width: 100%;
   border-radius: 16px;
 }
+
+
+/* =========================================================
+   TIMER — Premium polish (Protox style)
+   ========================================================= */
+
+.timer-premium{
+  position: relative;
+  padding: 14px;
+  border-radius: 18px;
+
+  background:
+    radial-gradient(900px 240px at 50% 0%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(700px 240px at 15% 20%, rgba(34, 211, 238, 0.10), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.16) inset,
+    0 18px 60px rgba(0,0,0,0.35),
+    0 0 30px rgba(139,92,246,0.10);
+
+  overflow: hidden;
+}
+
+.timer-premium::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  pointer-events:none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: translateX(-55%);
+  animation: timerShine 7s ease-in-out infinite;
+  opacity: 0.55;
+}
+
+@keyframes timerShine{
+  0% { transform: translateX(-60%); }
+  45% { transform: translateX(60%); }
+  100% { transform: translateX(60%); }
+}
+
+.timer-topbar{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.timer-kicker{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: white;
+  opacity: 0.95;
+}
+
+.timer-sub{
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.timer-badges{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+}
+
+.timer-badge{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  color: var(--purple-main);
+  border: 1px solid rgba(139,92,246,0.25);
+  background: rgba(139,92,246,0.10);
+}
+
+.timer-badge-state.state-ready{
+  color: var(--text-dim);
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+}
+.timer-badge-state.state-running{
+  color: var(--green-xp);
+  border-color: rgba(16,185,129,0.35);
+  background: rgba(16,185,129,0.10);
+}
+.timer-badge-state.state-paused{
+  color: var(--yellow);
+  border-color: rgba(245,158,11,0.35);
+  background: rgba(245,158,11,0.10);
+}
+
+/* ring più “premium” */
+.timer-circle{
+  margin: 14px auto 10px;
+}
+
+.timer-circle.premium-ring{
+  border-radius: 999px;
+}
+
+.timer-circle.premium-ring::before{
+  content:"";
+  position:absolute;
+  inset:-16px;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 65%);
+  filter: blur(10px);
+  opacity: 0.95;
+  pointer-events:none;
+}
+
+/* presets */
+.timer-presets{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.timer-premium .preset-btn{
+  border-radius: 14px;
+  padding: 10px 12px;
+
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-main);
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.timer-premium .preset-btn:hover{
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 16px rgba(139,92,246,0.18);
+  transform: translateY(-1px);
+}
+
+/* custom row */
+.timer-custom-row{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  margin-top: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.timer-custom-row .manual-input{
+  margin: 0;
+  flex: 1;
+}
+
+/* controls */
+.timer-controls{
+  display:flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.timer-ctrl-btn{
+  flex: 1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  padding: 12px 12px;
+  border-radius: 16px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  color: white;
+
+  cursor:pointer;
+  transition: all 0.18s ease;
+}
+
+.timer-ctrl-btn:hover{
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 18px rgba(139,92,246,0.16);
+  transform: translateY(-1px);
+}
+
+.timer-ctrl-btn.start{
+  background: rgba(16,185,129,0.10);
+  border-color: rgba(16,185,129,0.30);
+}
+
+.timer-ctrl-btn.stop{
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.30);
+}
+
+/* history */
+.timer-history{
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.timer-history-head{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.timer-history h3{
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: white;
+}
+
+.timer-history-count{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.session-item{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  margin-top: 8px;
+
+  border-radius: 14px;
+  background: rgba(139,92,246,0.05);
+  border: 1px solid rgba(139,92,246,0.14);
+}
+
+.session-date{
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.session-duration{
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 2px;
+  font-size: 0.7rem;
+  color: white;
+}
+
+/* =========================================================
+   FOCUS MODE — Premium (page + overlay)
+   ========================================================= */
+
+/* ---- Focus section inside Timer page ---- */
+.focus-options{
+  position: relative;
+  border-radius: 18px;
+  padding: 14px;
+
+  background:
+    radial-gradient(900px 240px at 50% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(700px 240px at 18% 20%, rgba(34, 211, 238, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.14) inset,
+    0 18px 60px rgba(0,0,0,0.30),
+    0 0 26px rgba(139,92,246,0.10);
+
+  overflow: hidden;
+}
+
+.focus-options::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  pointer-events:none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: translateX(-55%);
+  animation: focusShine 7s ease-in-out infinite;
+  opacity: 0.55;
+}
+
+@keyframes focusShine{
+  0% { transform: translateX(-60%); }
+  45% { transform: translateX(60%); }
+  100% { transform: translateX(60%); }
+}
+
+.focus-options h3{
+  margin: 0 0 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.focus-duration-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.focus-dur-btn{
+  border-radius: 16px;
+  padding: 12px 10px;
+
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-main);
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.focus-dur-btn:hover{
+  border-color: rgba(139,92,246,0.35);
+  background: rgba(139,92,246,0.10);
+  box-shadow: 0 0 18px rgba(139,92,246,0.14);
+  transform: translateY(-1px);
+}
+
+.dur-time{
+  display:block;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.dur-label{
+  display:block;
+  margin-top: 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.focus-custom-row{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  margin-top: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.focus-custom-row .manual-input{
+  margin: 0;
+  flex: 1;
+}
+
+.focus-desc{
+  margin: 10px 0 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Fullscreen Focus overlay ---- */
+#focus-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  padding:
+    max(14px, env(safe-area-inset-top))
+    14px
+    max(14px, env(safe-area-inset-bottom));
+
+  background:
+    radial-gradient(1200px 700px at 50% 10%, rgba(139, 92, 246, 0.28), transparent 55%),
+    radial-gradient(900px 700px at 12% 45%, rgba(34, 211, 238, 0.10), transparent 55%),
+    rgba(0,0,0,0.82);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  animation: friendsIn 0.18s ease; /* riusa la tua anim già esistente */
+}
+
+.focus-container{
+  width: min(92vw, 560px);
+  max-height: min(88svh, 900px);
+  overflow: auto;
+
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+  border: 1px solid rgba(255,255,255,0.10);
+
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.20) inset,
+    0 18px 70px rgba(0,0,0,0.60),
+    0 0 34px rgba(139,92,246,0.16);
+}
+
+.focus-header{
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}
+
+.focus-icon{
+  display:inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(139,92,246,0.95);
+  box-shadow: 0 0 18px rgba(139,92,246,0.55);
+  margin-bottom: 10px;
+}
+
+.focus-header h1{
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 4px;
+  font-size: 1.05rem;
+  color: #fff;
+  text-shadow: 0 0 22px rgba(139,92,246,0.22);
+}
+
+.focus-subtitle{
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.focus-timer-circle{
+  position: relative;
+  width: 260px;
+  height: 260px;
+  margin: 14px auto 10px;
+}
+
+.focus-ring{
+  position:absolute;
+  inset:0;
+}
+
+.focus-ring-bg{
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 14;
+}
+
+.focus-ring-progress{
+  fill: none;
+  stroke: rgba(139,92,246,0.95);
+  stroke-width: 14;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 10px rgba(139,92,246,0.35));
+  transition: stroke-dashoffset 0.25s linear;
+}
+
+.focus-timer-inner{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.focus-time{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 2.1rem;
+  color: #fff;
+}
+
+.focus-label{
+  margin-top: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+.focus-quote{
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 16px;
+
+  background: rgba(139,92,246,0.06);
+  border: 1px solid rgba(139,92,246,0.16);
+}
+
+.quote-text{
+  margin: 0;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.quote-author{
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+}
+
+.focus-breathe{
+  margin-top: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+}
+
+.breathe-circle{
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(34,211,238,0.85);
+  box-shadow: 0 0 18px rgba(34,211,238,0.35);
+  transition: transform 0.4s ease;
+}
+
+.breathe-text{
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.focus-end-btn{
+  width: 100%;
+  margin-top: 14px;
+
+  border-radius: 16px;
+  padding: 12px 14px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+
+  background: rgba(239,68,68,0.10);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: rgba(239,68,68,0.96);
+
+  cursor:pointer;
+  transition: all 0.18s ease;
+}
+
+.focus-end-btn:hover{
+  background: rgba(239,68,68,0.86);
+  color: #fff;
+}
+
+/* Mobile tweak */
+@media (max-width: 520px){
+  .focus-duration-grid{ grid-template-columns: repeat(2, 1fr); }
+  .focus-timer-circle{ width: 240px; height: 240px; }
+}
+
+/* ============================================
+   FOCUS MODE — Timer centering fix
+   ============================================ */
+
+/* forza il cerchio ad essere sempre centrato */
+.focus-timer-circle{
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: grid;
+  place-items: center;
+}
+
+/* l’svg/ring deve riempire sempre il box 100% */
+.focus-ring{
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+/* inner deve essere perfettamente centrato */
+.focus-timer-inner{
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* se stai usando l'id classico del tempo, centratura extra */
+#focus-time-display{
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* ============================================
+   FOCUS MODE — HARD CENTER FIX (override finale)
+   ============================================ */
+
+#focus-overlay .focus-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#focus-overlay .focus-timer-circle{
+  position: relative !important;
+  width: 260px !important;
+  height: 260px !important;
+  margin: 14px auto 10px !important;
+
+  display: block !important;
+}
+
+#focus-overlay .focus-ring{
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+#focus-overlay .focus-timer-inner{
+  position: absolute !important;
+  inset: 0 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  text-align: center !important;
+}
+
+#focus-overlay #focus-time-display{
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+/* ============================================
+   FOCUS MODE — Golden layout (final override)
+   ============================================ */
+
+#focus-overlay .focus-timer-circle{
+  position: relative !important;
+  width: 260px !important;
+  height: 260px !important;
+  margin: 14px auto 10px !important;
+}
+
+#focus-overlay .focus-ring{
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+#focus-overlay .focus-timer-inner{
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
