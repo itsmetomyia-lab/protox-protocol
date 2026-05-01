@@ -150,25 +150,25 @@
 
         <!-- AZIONI -->
         <div id="actions-section">
-            <!-- SEARCH BAR + ADD BUTTON -->
-            <div id="actions-toolbar">
-                <div class="search-container">
-                    <span class="search-icon">🔍</span>
-                    <input type="text"
-                           id="action-search"
-                           class="search-input"
-                           placeholder="Cerca azione..."
-                           oninput="CustomActions.onSearch(this.value)"
-                           autocomplete="off">
-                    <button class="search-clear hidden" id="search-clear" onclick="CustomActions.clearSearch()">✕</button>
-                </div>
-                <button class="toggle-actions-btn" id="toggle-actions-btn" onclick="CustomActions.toggleVisibility()">
-                    <span id="toggle-icon">▼</span>
-                </button>
-                <button class="add-action-btn" onclick="CustomActions.showCreatePopup()">
-                    <span>+</span>
-                </button>
-            </div>
+       <!-- SEARCH BAR + ADD BUTTON -->
+<div id="actions-toolbar">
+    <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" 
+               id="action-search" 
+               class="search-input" 
+               placeholder="Cerca azione..." 
+               oninput="CustomActions.onSearch(this.value)" 
+               autocomplete="off">
+        <button class="search-clear hidden" id="search-clear" onclick="CustomActions.clearSearch()">✕</button>
+    </div>
+    <button class="toggle-actions-btn" id="toggle-actions-btn" onclick="CustomActions.toggleVisibility()">
+        <span id="toggle-icon">↓</span>
+    </button>
+    <button class="add-action-btn" onclick="CustomActions.showCreatePopup()">
+        <span>+</span>
+    </button>
+</div>
 
           <!-- FILTRI -->
           <div id="action-filters">

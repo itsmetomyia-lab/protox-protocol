@@ -476,29 +476,7 @@ body {
     margin-bottom: 10px;
 }
 
-.rep-btn {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--green-xp);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 8px;
-    padding: 10px 6px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
 
-.rep-btn:hover {
-    background: rgba(16, 185, 129, 0.25);
-    border-color: var(--green-xp);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
-    transform: translateY(-1px);
-}
-
-.rep-btn:active {
-    transform: translateY(0) scale(0.95);
-}
 
 /* MANUAL INPUT */
 #manual-reps-container {
@@ -1157,159 +1135,7 @@ body {
     line-height: 1.5;
 }
 
-/* FOCUS OVERLAY */
-#focus-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: var(--bg-main);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.5s ease;
-}
 
-.focus-container {
-    text-align: center;
-    padding: 20px;
-    max-width: 400px;
-    width: 100%;
-}
-
-.focus-header { margin-bottom: 30px; }
-
-.focus-icon {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.focus-header h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.4rem;
-    color: var(--purple-main);
-    letter-spacing: 5px;
-    text-shadow: 0 0 20px var(--purple-glow);
-}
-
-.focus-subtitle {
-    color: var(--text-dim);
-    font-size: 0.85rem;
-    margin-top: 5px;
-}
-
-.focus-timer-circle {
-    position: relative;
-    width: 250px;
-    height: 250px;
-    margin: 0 auto 30px;
-}
-
-.focus-ring { transform: rotate(-90deg); }
-
-.focus-ring-bg {
-    fill: none;
-    stroke: var(--bg-card);
-    stroke-width: 6;
-}
-
-.focus-ring-progress {
-    fill: none;
-    stroke: var(--purple-main);
-    stroke-width: 6;
-    stroke-linecap: round;
-    stroke-dasharray: 691;
-    stroke-dashoffset: 691;
-    transition: stroke-dashoffset 1s linear;
-    filter: drop-shadow(0 0 8px var(--purple-glow));
-}
-
-.focus-timer-inner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.focus-time {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: white;
-    display: block;
-}
-
-.focus-label {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 3px;
-}
-
-.focus-quote {
-    margin-bottom: 30px;
-    padding: 15px;
-}
-
-.quote-text {
-    font-size: 1rem;
-    color: var(--text-main);
-    font-style: italic;
-    line-height: 1.6;
-    margin-bottom: 8px;
-}
-
-.quote-author {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-}
-
-.focus-breathe {
-    margin-bottom: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.breathe-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--purple-main);
-    opacity: 0.5;
-    transition: transform 4s ease-in-out;
-    box-shadow: 0 0 30px var(--purple-glow);
-}
-
-.breathe-text {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-}
-
-.focus-end-btn {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--red-neg);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    padding: 12px 30px;
-    border-radius: 10px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    cursor: pointer;
-    letter-spacing: 2px;
-    transition: all 0.2s;
-}
-
-.focus-end-btn:hover {
-    background: rgba(239, 68, 68, 0.3);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
 
 /* ============================================
    STATS PAGE
@@ -2427,27 +2253,7 @@ html, body {
     align-items: center;
 }
 
-.search-icon {
-    position: absolute;
-    left: 12px;
-    font-size: 0.85rem;
-    opacity: 0.4;
-    pointer-events: none;
-}
 
-.search-input {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 36px 11px 38px;
-    color: var(--text-main);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    outline: none;
-    transition: all 0.3s;
-}
 
 .search-input:focus {
     border-color: var(--purple-main);
@@ -2832,21 +2638,7 @@ body.theme-custom {
         radial-gradient(ellipse at bottom, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
 }
 
-/* ============================================
-   REPS BUTTONS SEGUONO IL TEMA
-   ============================================ */
 
-.rep-btn {
-    background: rgba(var(--green-xp-rgb, 16, 185, 129), 0.1);
-    color: var(--green-xp);
-    border: 1px solid var(--green-xp);
-    border-color: rgba(var(--green-xp-rgb, 16, 185, 129), 0.3);
-}
-
-.rep-btn:hover {
-    background: rgba(var(--green-xp-rgb, 16, 185, 129), 0.2);
-    border-color: var(--green-xp);
-}
 
 /* Protox section segue tema */
 #protox-section h2 {
@@ -7164,4 +6956,536 @@ body.theme-custom {
   font-size: 0.65rem;
   letter-spacing: 2px;
   color: var(--text-dim);
+}
+
+/* ============================================
+   HOME POLISH (ACTIONS toolbar + filters + header)
+   ============================================ */
+
+/* Titoli dentro header: no doppio margin */
+#protox-section .section-card-header h2,
+#actions-section .section-card-header h2{
+  margin-bottom: 0;
+}
+
+/* Badge variant (viola) */
+.section-badge.purple{
+  color: var(--purple-main);
+  background: rgba(139, 92, 246, 0.10);
+  border: 1px solid rgba(139, 92, 246, 0.30);
+}
+
+/* (Se per caso non ce l’hai già) utility hidden coerente col markup */
+.hidden{ display: none !important; }
+
+/* ---------- ACTIONS toolbar ---------- */
+#actions-toolbar{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-container{
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 10px;
+}
+
+.search-icon{
+  width: 18px;
+  min-width: 18px;
+  opacity: 0.8;
+}
+.search-icon::before{
+  content: "⌕";
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.search-input{
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+
+  color: var(--text-main);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.search-clear{
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.search-clear:hover{
+  color: white;
+  background: rgba(255,255,255,0.06);
+}
+
+.toggle-actions-btn,
+.add-action-btn{
+  height: 42px;
+  width: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  cursor: pointer;
+
+  border: 1px solid var(--border);
+  background: rgba(139,92,246,0.08);
+  transition: all 0.2s ease;
+}
+
+.toggle-actions-btn:hover,
+.add-action-btn:hover{
+  border-color: rgba(139,92,246,0.45);
+  box-shadow: 0 0 14px var(--purple-glow);
+  transform: translateY(-1px);
+}
+
+.toggle-actions-btn.collapsed{
+  background: rgba(255,255,255,0.04);
+}
+
+/* ---------- Filtri (chip) ---------- */
+#action-filters{
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+
+  scrollbar-width: none; /* Firefox */
+}
+#action-filters::-webkit-scrollbar{ display: none; }
+
+.filter-btn{
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-dim);
+
+  padding: 8px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover{
+  border-color: rgba(139,92,246,0.35);
+  color: var(--text-main);
+}
+
+.filter-btn.active{
+  color: white;
+  background: rgba(139,92,246,0.14);
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 14px rgba(139,92,246,0.18);
+}
+
+/* ---------- Gruppi (GIORNALIERE / RIPETIBILI / PENALITÀ) ---------- */
+.actions-group{
+  margin-bottom: 12px;
+}
+.actions-group:last-child{ margin-bottom: 0; }
+
+.actions-group-label{
+  display: block;
+  margin: 6px 0 8px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.actions-group-label.negative-label{
+  color: rgba(239,68,68,0.85);
+}
+
+/* Collapsed state */
+.actions-collapsed{
+  padding: 14px 12px;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.10);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.collapsed-text{
+  color: var(--text-dim);
+  font-weight: 700;
+}
+.collapsed-count{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  color: var(--purple-main);
+}
+
+/* Extra UI sugli action item generati da CustomActions */
+.action-tag{
+  margin-right: 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  color: var(--purple-main);
+  opacity: 0.9;
+}
+
+.action-delete{
+  margin-left: 10px;
+  border: none;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-dim);
+  border-radius: 10px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.action-delete:hover{
+  color: white;
+  border-color: rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.10);
+}
+
+.no-results{
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-dim);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ==================== CYBER CARD (stile profilo) ==================== */
+.cyber-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        0 18px 60px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(139, 92, 246, 0.08) inset;
+}
+
+.cyber-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(900px 180px at 50% 0%, rgba(139, 92, 246, 0.14), transparent 60%);
+    z-index: 0;
+}
+
+.cyber-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Hover opzionale ma bello */
+.cyber-card:hover {
+    border-color: rgba(139, 92, 246, 0.25);
+    box-shadow: 
+        0 22px 70px rgba(0,0,0,0.5),
+        0 0 30px rgba(139,92,246,0.12);
+}
+
+#protox-section,
+#actions-section,
+.section-card,
+.profile-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        0 18px 60px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(139, 92, 246, 0.08) inset;
+}
+
+#protox-section::before,
+#actions-section::before,
+.section-card::before,
+.profile-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(900px 180px at 50% 0%, rgba(139, 92, 246, 0.14), transparent 60%);
+    z-index: 0;
+}
+
+#protox-section > *, 
+#actions-section > *, 
+.section-card > *, 
+.profile-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ==================== SEARCH BAR FIX ==================== */
+.search-container {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    opacity: 0.35;
+    color: var(--purple-main);
+    pointer-events: none;
+    z-index: 2;
+    transition: all 0.3s;
+}
+
+.search-input {
+    padding: 11px 16px 11px 44px !important; /* spazio per una sola icona */
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.search-input:focus + .search-icon,
+.search-input:focus ~ .search-icon {
+    opacity: 0.7;
+    color: var(--purple-main);
+}
+
+/* Nascondiamo qualsiasi eventuale duplicato residuo */
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-cancel-button,
+.search-input::before {
+    display: none;
+}
+
+/* ==================== POLISHING HOME ==================== */
+#protox-section,
+#actions-section,
+.section-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+        0 20px 65px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(139, 92, 246, 0.1) inset;
+}
+
+#protox-section::before,
+#actions-section::before,
+.section-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: radial-gradient(ellipse at 50% 10%, rgba(139, 92, 246, 0.18), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+}
+
+/* XP Bar più cyber */
+#protox-bar-container {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.15) inset;
+}
+
+#protox-bar-fill {
+    background: linear-gradient(90deg, var(--purple-main), #a78bfa, #c4b5fd);
+    box-shadow: 0 0 15px var(--purple-glow);
+}
+
+
+/* ==================== REP BUTTONS - TEMA VIOLA (FIX FORTE) ==================== */
+#rep-buttons .rep-btn {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #c4b5fd !important;
+    border: 1px solid rgba(139, 92, 246, 0.5) !important;
+    border-radius: 10px;
+    padding: 11px 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-shadow: 0 0 12px rgba(167, 139, 250, 0.7);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#rep-buttons .rep-btn:hover {
+    background: rgba(139, 92, 246, 0.28) !important;
+    border-color: #a78bfa !important;
+    color: white !important;
+    box-shadow: 0 0 22px rgba(139, 92, 246, 0.55);
+    transform: translateY(-3px);
+}
+
+#rep-buttons .rep-btn:active {
+    transform: scale(0.9);
+    background: rgba(139, 92, 246, 0.45) !important;
+}
+
+
+/* ==================== SEARCH BAR - SOLO UNA LENTE ==================== */
+.search-container {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.15rem;
+    opacity: 0.45;
+    color: #a78bfa;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.search-input {
+    padding: 12px 16px 12px 48px !important;
+    border-radius: 12px !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+}
+
+.search-input:focus {
+    border-color: var(--purple-main) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+}
+
+.search-input:focus + .search-icon {
+    opacity: 0.9;
+    color: var(--purple-main);
+}
+
+/* Forza rimozione di qualsiasi altra icona residua */
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-cancel-button,
+.search-input::before {
+    display: none !important;
+}
+
+/* ==================== SEARCH - SOLO UNA LENTE (SELETTORI PRECISI) ==================== */
+.search-container .search-icon {
+    content: "🔍";
+    left: 14px !important;
+    font-size: 1.25rem !important;
+    opacity: 0.5;
+    color: var(--purple-main);
+    top: 50% !important;
+    transform: translateY(-50%);
+}
+
+.search-input {
+    padding: 11px 40px 11px 46px !important;
+}
+
+/* Nasconde qualsiasi testo residuo o pseudo-elemento */
+.search-container .search-icon:not(:has(.search-icon))::before,
+.search-icon:contains("Search") {
+    display: none !important;
+}
+
+/* ==================== REP BUTTONS - COLORE DEL TEMA ATTIVO ==================== */
+#rep-buttons .rep-btn {
+    background: rgba(var(--purple-main-rgb, 139, 92, 246), 0.12) !important;
+    color: var(--purple-main) !important;
+    border: 1px solid rgba(var(--purple-main-rgb, 139, 92, 246), 0.45) !important;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-shadow: 0 0 10px var(--purple-glow);
+    transition: all 0.25s ease;
+}
+
+#rep-buttons .rep-btn:hover {
+    background: rgba(var(--purple-main-rgb, 139, 92, 246), 0.25) !important;
+    border-color: var(--purple-main) !important;
+    color: white !important;
+    box-shadow: 0 0 20px var(--purple-glow);
+    transform: translateY(-2px);
+}
+
+#rep-buttons .rep-btn:active {
+    transform: scale(0.92);
+}
+
+
+/* ==================== SEARCH BAR - SINGOLA LENTE (FIX FINALE) ==================== */
+.search-container {
+    position: relative;
+}
+
+.search-container .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    color: var(--purple-main);
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.search-input {
+    padding: 11px 12px 11px 42px !important;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.search-input:focus {
+    border-color: var(--purple-main);
+    box-shadow: 0 0 0 3px rgba(var(--purple-main-rgb, 139 92 246), 0.2);
+}
+
+.search-input:focus + .search-icon {
+    opacity: 0.85;
+    color: var(--purple-main);
+}
+
+/* Forza la sparizione di qualsiasi altra icona residua */
+.search-container::before,
+.search-input::before,
+.search-icon::before {
+    display: none !important;
+    content: none !important;
 }
