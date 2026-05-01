@@ -3,7 +3,7 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v7';
+const CACHE_NAME = 'protox-v8';
 
 const ASSETS = [
   '/',
@@ -85,19 +85,38 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4) Asset: cache-first + aggiorna cache
+// 4) CSS/JS: NETWORK FIRST (così non devi hard-refreshare per vedere update)
+const isCodeAsset =
+  url.pathname.endsWith('.js') ||
+  url.pathname.endsWith('.css') ||
+  url.pathname === '/index.html' ||
+  url.pathname === '/';
+
+if (isCodeAsset) {
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(req).then((res) => {
-        // Non cache-are risposte non-ok
-        if (!res || !res.ok) return res;
-
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+        }
         return res;
-      });
-    })
+      })
+      .catch(() => caches.match(req))
   );
+  return;
+}
+
+// 5) Tutto il resto: cache-first
+event.respondWith(
+  caches.match(req).then((cached) => {
+    if (cached) return cached;
+    return fetch(req).then((res) => {
+      if (!res || !res.ok) return res;
+      const resClone = res.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+      return res;
+    });
+  })
+);
 });

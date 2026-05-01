@@ -39,19 +39,26 @@ activate(minutes = 25) {
         <p class="focus-subtitle">Elimina le distrazioni. Concentrati.</p>
       </div>
 
-      <div class="focus-timer-circle">
-        <svg class="focus-ring" viewBox="0 0 260 260" width="260" height="260" aria-hidden="true">
-          <circle class="focus-ring-bg" cx="130" cy="130" r="110" transform="rotate(-90 130 130)"></circle>
-          <circle class="focus-ring-progress" id="focus-ring-fill"
-                  cx="130" cy="130" r="110"
-                  transform="rotate(-90 130 130)"></circle>
-        </svg>
+<div class="timer-circle" style="position:relative; width:260px; height:260px; margin:16px auto;">
 
-        <div class="focus-timer-inner">
-          <div class="focus-time" id="focus-time-display">${this.formatTime(this.seconds)}</div>
-          <div class="focus-label">RIMANENTI</div>
-        </div>
-      </div>
+  <svg class="focus-ring" viewBox="0 0 260 260" width="260" height="260" aria-hidden="true" style="display:block;">
+    <circle class="focus-ring-bg" cx="130" cy="130" r="110" transform="rotate(-90 130 130)"></circle>
+    <circle class="focus-ring-progress" id="focus-ring-fill"
+      cx="130" cy="130" r="110" transform="rotate(-90 130 130)"></circle>
+  </svg>
+
+  <div class="timer-time" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+    <div class="focus-time" id="focus-time-display"
+         style="font-family:'Orbitron',sans-serif; font-size:2.2rem; font-weight:800;">
+      ${this.formatTime(this.seconds)}
+    </div>
+    <div class="focus-label"
+         style="font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:var(--text-dim);">
+      RIMANENTI
+    </div>
+  </div>
+
+</div>
 
       <div class="focus-quote" id="focus-quote">
         ${this.getRandomQuote()}
@@ -67,7 +74,38 @@ activate(minutes = 25) {
   `;
 
   document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
+
+// FORZA centratura timer dentro il ring (anti-bug top-left)
+const circle = overlay.querySelector('.focus-timer-circle');
+const inner  = overlay.querySelector('.focus-timer-inner');
+const ringSvg = overlay.querySelector('svg.focus-ring');
+
+if (circle && inner) {
+  // il parent deve essere "posizionato" per ancorare l'absolute dei figli
+  circle.style.setProperty('position', 'relative', 'important');
+  circle.style.setProperty('width', '260px', 'important');
+  circle.style.setProperty('height', '260px', 'important');
+  circle.style.setProperty('margin', '16px auto', 'important');
+
+  // il testo deve stare sopra l'SVG e centrato
+  inner.style.setProperty('position', 'absolute', 'important');
+  inner.style.setProperty('inset', '0', 'important');
+  inner.style.setProperty('display', 'flex', 'important');
+  inner.style.setProperty('flex-direction', 'column', 'important');
+  inner.style.setProperty('align-items', 'center', 'important');
+  inner.style.setProperty('justify-content', 'center', 'important');
+  inner.style.setProperty('text-align', 'center', 'important');
+  inner.style.setProperty('z-index', '2', 'important');
+}
+
+if (ringSvg) {
+  ringSvg.style.setProperty('display', 'block', 'important');
+  ringSvg.style.setProperty('width', '260px', 'important');
+  ringSvg.style.setProperty('height', '260px', 'important');
+}
+  
+document.body.style.overflow = 'hidden';
+
 
   // init ring (frame 0)
   const ring = document.getElementById('focus-ring-fill');

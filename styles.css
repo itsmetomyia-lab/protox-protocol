@@ -7025,3 +7025,143 @@ body.theme-custom {
   justify-content: center !important;
   text-align: center !important;
 }
+
+/* ============================================
+   FOCUS MODE - fix centratura timer nel ring
+   ============================================ */
+
+#focus-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.focus-timer-circle{
+  position: relative;   /* <-- fondamentale: ancora il contenuto interno */
+  width: 260px;
+  height: 260px;
+  margin: 0 auto;
+}
+
+.focus-ring{
+  display: block;       /* evita baseline/offset da SVG inline */
+  width: 260px;
+  height: 260px;
+  margin: 0 auto;
+}
+
+.focus-timer-inner{
+  position: absolute;   /* <-- fondamentale: sovrappone il testo al cerchio */
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* opzionale: stile testo (solo estetica) */
+.focus-time{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+}
+
+.focus-label{
+  margin-top: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+/* opzionale: stile ring (se vuoi look “premium”) */
+.focus-ring-bg{
+  fill: none;
+  stroke: var(--bg-input);
+  stroke-width: 6;
+}
+.focus-ring-progress{
+  fill: none;
+  stroke: var(--purple-main);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+  filter: drop-shadow(0 0 6px var(--purple-glow));
+}
+
+/* ============================================
+   FOCUS MODE - CENTER TIMER FIX (robusto)
+   Sovrappone ring (SVG) e testo con CSS grid
+   ============================================ */
+
+#focus-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* contenitore centrale */
+#focus-overlay .focus-container{
+  width: min(92vw, 420px);
+  text-align: center;
+}
+
+/* QUI sta la magia:
+   ring e testo finiscono nella stessa "cella" */
+#focus-overlay .focus-timer-circle{
+  width: 260px;
+  height: 260px;
+  margin: 14px auto;
+  display: grid;
+  place-items: center;
+}
+
+/* SVG ring nella stessa cella */
+#focus-overlay .focus-ring{
+  grid-area: 1 / 1;
+  width: 260px;
+  height: 260px;
+  display: block;
+}
+
+/* testo nella stessa cella, sopra l’SVG */
+#focus-overlay .focus-timer-inner{
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#focus-overlay .focus-time{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+#focus-overlay .focus-label{
+  margin-top: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
