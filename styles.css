@@ -11018,3 +11018,297 @@ body.light-mode #onboarding-overlay h2{
   100% { transform: scale(0.92); opacity: 0; filter: blur(2px); }
 }
 
+/* =========================================================
+   FRIENDS — AAA FLUID (CSS ONLY)
+   Obiettivo: stesso effetto premium, ma 60fps:
+   - animiamo SOLO transform+opacity
+   - niente filter blur animato, niente mix-blend-mode, niente noise full-screen
+   - #friends-content appare dopo (evita paint pesante durante l'entrata)
+   Compatibile con friends.js:
+   - open() append + render() + refresh() immediati <!--citation:1-->
+   - close() setta inline: overlay.style.animation = 'friendsOut 0.18s...' <!--citation:1-->
+   ========================================================= */
+
+:root{
+  /* timing */
+  --fr-ov-in: 220ms;
+  --fr-pa-in: 700ms;
+
+  /* delay fondamentale: lasciamo finire render/refresh prima del “missile” */
+  --fr-pa-delay: 170ms;
+
+  /* contenuto appare dopo il settle */
+  --fr-content-delay: 520ms;
+
+  /* close: JS rimuove dopo 180ms -> stiamo stretti */
+  --fr-pa-out: 170ms;
+
+  /* easing */
+  --fr-ease-soft: cubic-bezier(.22, 1, .36, 1);
+  --fr-ease-spring: cubic-bezier(.16, 1.20, .25, 1);
+  --fr-ease-out: cubic-bezier(.2, .9, .2, 1);
+
+  /* look */
+  --fr-glow-a: rgba(139, 92, 246, 0.24);
+  --fr-glow-b: rgba(56, 189, 248, 0.14);
+  --fr-dim: rgba(0,0,0,0.72);
+
+  --fr-border: rgba(255,255,255,0.12);
+  --fr-border-soft: rgba(255,255,255,0.07);
+}
+
+/* ============ Overlay ============ */
+#friends-overlay{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10050 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) !important;
+
+  perspective: 1100px !important;
+  perspective-origin: 50% 35% !important;
+
+  background:
+    radial-gradient(1100px 640px at 50% 18%, var(--fr-glow-a), transparent 62%),
+    radial-gradient(900px 520px at 72% 30%, var(--fr-glow-b), transparent 64%),
+    var(--fr-dim) !important;
+
+  /* backdrop-filter è “cool” ma può costare: lo teniamo più leggero */
+  backdrop-filter: blur(12px) saturate(1.06) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.06) !important;
+
+  opacity: 0;
+  animation: frOverlayIn var(--fr-ov-in) var(--fr-ease-soft) both !important;
+
+  will-change: opacity;
+  transform: translateZ(0);
+  isolation: isolate;
+}
+
+#friends-overlay::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* vignette leggera, cheap */
+  background:
+    radial-gradient(1200px 900px at 50% 50%, transparent 46%, rgba(0,0,0,0.42) 100%);
+  opacity: 0.95;
+}
+
+/* ============ Panel ============ */
+#friends-panel{
+  position: relative !important;
+  z-index: 1 !important;
+
+  width: min(620px, 94vw) !important;
+  max-height: min(88vh, 900px) !important;
+  overflow: hidden !important;
+
+  border-radius: 26px !important;
+  border: 1px solid var(--fr-border) !important;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.070), rgba(255,255,255,0.022)) !important;
+
+  box-shadow:
+    0 0 0 1px var(--fr-border-soft) inset,
+    0 18px 70px rgba(0,0,0,0.68),
+    0 0 0 1px rgba(139,92,246,0.08) !important;
+
+  transform-style: preserve-3d !important;
+  transform-origin: 50% 60%;
+
+  /* stato iniziale */
+  opacity: 0;
+  transform: translate3d(0, 46px, -520px) rotateX(14deg) scale(0.62);
+
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+
+  /* delay = smooth (evita che render/refresh ti jankino i primi frame) */
+  animation: frPanelIn var(--fr-pa-in) var(--fr-ease-spring) var(--fr-pa-delay) both !important;
+
+  /* isola layout/paint dentro la card: riduce “ripples” quando render() aggiorna */
+  contain: layout paint style;
+}
+
+/* bordo glow “cheap”: niente mix-blend-mode */
+#friends-panel::before{
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 28px;
+  pointer-events: none;
+  background:
+    radial-gradient(680px 220px at 30% 10%, rgba(255,255,255,0.12), transparent 62%),
+    radial-gradient(640px 260px at 70% 0%, rgba(139,92,246,0.14), transparent 66%);
+  opacity: 0.75;
+}
+
+/* sheen: SOLO transform+opacity (fluidissimo) */
+#friends-panel::after{
+  content: "";
+  position: absolute;
+  top: -38%;
+  left: -80%;
+  width: 160%;
+  height: 80%;
+  pointer-events: none;
+
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 38%,
+    rgba(255,255,255,0.20) 50%,
+    rgba(255,255,255,0.08) 62%,
+    transparent 100%
+  );
+
+  transform: rotate(14deg) translateX(0);
+  opacity: 0;
+
+  animation: frSheen 760ms var(--fr-ease-soft) calc(var(--fr-pa-delay) + 120ms) both;
+}
+
+/* ============ Contenuto: appare dopo il pop (mega boost fluidità) ============ */
+#friends-content{
+  opacity: 0;
+  transform: translateY(8px);
+  will-change: transform, opacity;
+  contain: content;
+  animation: frContentIn 260ms var(--fr-ease-soft) var(--fr-content-delay) both;
+}
+
+/* ============ Keyframes (SOLO transform+opacity) ============ */
+@keyframes frOverlayIn{
+  from{ opacity: 0; }
+  to{ opacity: 1; }
+}
+
+/* pop “verso di te”, overshoot, settle — senza blur/filter */
+@keyframes frPanelIn{
+  0%{
+    opacity: 0;
+    transform: translate3d(0, 52px, -620px) rotateX(16deg) scale(0.56);
+  }
+  38%{
+    opacity: 1;
+    transform: translate3d(0, 14px, -160px) rotateX(7deg) scale(0.96);
+  }
+  62%{
+    opacity: 1;
+    transform: translate3d(0, -8px, 70px) rotateX(0deg) scale(1.055);
+  }
+  78%{
+    opacity: 1;
+    transform: translate3d(0, 2px, 18px) rotateX(0deg) scale(0.995);
+  }
+  100%{
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
+  }
+}
+
+@keyframes frSheen{
+  0%   { opacity: 0; transform: rotate(14deg) translateX(-10%); }
+  28%  { opacity: 0.55; }
+  100% { opacity: 0; transform: rotate(14deg) translateX(105%); }
+}
+
+@keyframes frContentIn{
+  from{ opacity: 0; transform: translateY(8px); }
+  to  { opacity: 1; transform: translateY(0); }
+}
+
+/* close(): questo nome deve esistere perché friends.js lo usa inline <!--citation:1--> */
+@keyframes friendsOut{
+  from{ opacity: 1; }
+  to{ opacity: 0; }
+}
+
+/* aggancio uscita panel quando close() scrive friendsOut inline */
+#friends-overlay[style*="friendsOut"] #friends-panel{
+  animation: frPanelOut var(--fr-pa-out) var(--fr-ease-out) forwards !important;
+}
+@keyframes frPanelOut{
+  from{ opacity: 1; transform: translate3d(0,0,0) rotateX(0deg) scale(1); }
+  to  { opacity: 0; transform: translate3d(0, 16px, -160px) rotateX(8deg) scale(0.97); }
+}
+
+/* reduced motion: non spegnere a 1ms (sennò sembra flash), rendi solo più sobrio */
+@media (prefers-reduced-motion: reduce){
+  #friends-panel{ animation-duration: 320ms !important; animation-delay: 0ms !important; }
+  #friends-content{ animation-delay: 0ms !important; }
+}
+
+
+/* ============================================
+   FRIENDS — FIX BUTTONS VISIBILITY / LAYERING
+   (da mettere DOPO il blocco friends AAA)
+   ============================================ */
+
+/* 1) Forza stacking corretto: decorazioni sotto, UI sopra */
+#friends-panel{
+  isolation: isolate !important; /* crea stacking context pulito */
+  color: var(--text-main, #e2e8f0) !important;
+}
+
+#friends-panel::before,
+#friends-panel::after{
+  z-index: 0 !important;
+}
+
+#friends-panel .friends-header,
+#friends-panel #friends-content{
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* 2) Garantisce che #friends-content NON resti bloccato invisibile */
+#friends-content{
+  opacity: 1;              /* fallback: se un’anim salta, NON perdi la UI */
+  transform: none;
+  animation: friendsContentIn 220ms cubic-bezier(.22, 1, .36, 1) 180ms both;
+}
+
+@keyframes friendsContentIn{
+  from{ opacity: 0; transform: translateY(8px); }
+  to  { opacity: 1; transform: translateY(0); }
+}
+
+/* 3) Rende “sempre leggibile” la X e i tab (anche se non avevano CSS dedicato) */
+#friends-panel .friends-icon-btn{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.92);
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+#friends-panel .friends-icon-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(139,92,246,0.10);
+  border-color: rgba(139,92,246,0.30);
+}
+
+#friends-panel .friends-tab{
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.86);
+  border-radius: 999px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+#friends-panel .friends-tab.active{
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.10) inset, 0 0 18px rgba(139,92,246,0.12);
+}

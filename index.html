@@ -65,27 +65,46 @@
 
         <!-- THEME SWITCHER -->
         <div id="theme-switcher">
-            <button class="theme-btn active" onclick="setTheme('purple')" id="theme-purple">
-                <span class="theme-dot purple-dot"></span>
+          <button
+            class="theme-btn active"
+            onclick="setTheme('purple')"
+            id="theme-purple"
+          >
+            <span class="theme-dot purple-dot"></span>
+          </button>
+          <button class="theme-btn" onclick="setTheme('red')" id="theme-red">
+            <span class="theme-dot red-dot"></span>
+          </button>
+          <button class="theme-btn" onclick="setTheme('blue')" id="theme-blue">
+            <span class="theme-dot blue-dot"></span>
+          </button>
+          <button
+            class="theme-btn"
+            onclick="setTheme('green')"
+            id="theme-green"
+          >
+            <span class="theme-dot green-dot"></span>
+          </button>
+          <button class="theme-btn" onclick="setTheme('gold')" id="theme-gold">
+            <span class="theme-dot gold-dot"></span>
+          </button>
+          <div class="theme-custom-wrapper">
+            <input
+              type="color"
+              id="custom-color-picker"
+              class="color-picker-hidden"
+              value="#8b5cf6"
+              oninput="applyCustomColor(this.value)"
+              onchange="applyCustomColor(this.value)"
+            />
+            <button
+              class="theme-btn theme-custom-btn"
+              id="theme-custom"
+              onclick="openColorPicker()"
+            >
+              <span class="theme-dot custom-dot">🎨</span>
             </button>
-            <button class="theme-btn" onclick="setTheme('red')" id="theme-red">
-                <span class="theme-dot red-dot"></span>
-            </button>
-            <button class="theme-btn" onclick="setTheme('blue')" id="theme-blue">
-                <span class="theme-dot blue-dot"></span>
-            </button>
-            <button class="theme-btn" onclick="setTheme('green')" id="theme-green">
-                <span class="theme-dot green-dot"></span>
-            </button>
-            <button class="theme-btn" onclick="setTheme('gold')" id="theme-gold">
-                <span class="theme-dot gold-dot"></span>
-            </button>
-            <div class="theme-custom-wrapper">
-                <input type="color" id="custom-color-picker" class="color-picker-hidden" value="#8b5cf6" oninput="applyCustomColor(this.value)" onchange="applyCustomColor(this.value)">
-                <button class="theme-btn theme-custom-btn" id="theme-custom" onclick="openColorPicker()">
-                    <span class="theme-dot custom-dot">🎨</span>
-                </button>
-            </div>
+          </div>
         </div>
 
         <!-- STATS BAR -->
@@ -150,25 +169,40 @@
 
         <!-- AZIONI -->
         <div id="actions-section">
-       <!-- SEARCH BAR + ADD BUTTON -->
-<div id="actions-toolbar">
-    <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="text" 
-               id="action-search" 
-               class="search-input" 
-               placeholder="Cerca azione..." 
-               oninput="CustomActions.onSearch(this.value)" 
-               autocomplete="off">
-        <button class="search-clear hidden" id="search-clear" onclick="CustomActions.clearSearch()">✕</button>
-    </div>
-    <button class="toggle-actions-btn" id="toggle-actions-btn" onclick="CustomActions.toggleVisibility()">
-        <span id="toggle-icon">↓</span>
-    </button>
-    <button class="add-action-btn" onclick="CustomActions.showCreatePopup()">
-        <span>+</span>
-    </button>
-</div>
+          <!-- SEARCH BAR + ADD BUTTON -->
+          <div id="actions-toolbar">
+            <div class="search-container">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                id="action-search"
+                class="search-input"
+                placeholder="Cerca azione..."
+                oninput="CustomActions.onSearch(this.value)"
+                autocomplete="off"
+              />
+              <button
+                class="search-clear hidden"
+                id="search-clear"
+                onclick="CustomActions.clearSearch()"
+              >
+                ✕
+              </button>
+            </div>
+            <button
+              class="toggle-actions-btn"
+              id="toggle-actions-btn"
+              onclick="CustomActions.toggleVisibility()"
+            >
+              <span id="toggle-icon">↓</span>
+            </button>
+            <button
+              class="add-action-btn"
+              onclick="CustomActions.showCreatePopup()"
+            >
+              <span>+</span>
+            </button>
+          </div>
 
           <!-- FILTRI -->
           <div id="action-filters">
@@ -193,10 +227,34 @@
             >
               ❌ Negative
             </button>
-<button class="filter-btn" data-filter="body" onclick="CustomActions.setFilter('body')">💪</button>
-<button class="filter-btn" data-filter="mind" onclick="CustomActions.setFilter('mind')">🧠</button>
-<button class="filter-btn" data-filter="will" onclick="CustomActions.setFilter('will')">🔥</button>
-<button class="filter-btn" data-filter="soul" onclick="CustomActions.setFilter('soul')">✨</button>
+            <button
+              class="filter-btn"
+              data-filter="body"
+              onclick="CustomActions.setFilter('body')"
+            >
+              💪
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="mind"
+              onclick="CustomActions.setFilter('mind')"
+            >
+              🧠
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="will"
+              onclick="CustomActions.setFilter('will')"
+            >
+              🔥
+            </button>
+            <button
+              class="filter-btn"
+              data-filter="soul"
+              onclick="CustomActions.setFilter('soul')"
+            >
+              ✨
+            </button>
           </div>
 
           <!-- LISTA AZIONI -->
@@ -205,16 +263,18 @@
 
         <!-- PLANNER BUTTON -->
         <div id="planner-button-section">
-            <button class="planner-open-btn" onclick="Planner.open()">
-                <span class="planner-btn-icon">📅</span>
-                <div class="planner-btn-info">
-                    <span class="planner-btn-title">PLANNER 90 GIORNI</span>
-                    <span class="planner-btn-desc">Programma e rivedi le tue giornate</span>
-                </div>
-                <span class="planner-btn-arrow">→</span>
-            </button>
+          <button class="planner-open-btn" onclick="Planner.open()">
+            <span class="planner-btn-icon">📅</span>
+            <div class="planner-btn-info">
+              <span class="planner-btn-title">PLANNER 90 GIORNI</span>
+              <span class="planner-btn-desc"
+                >Programma e rivedi le tue giornate</span
+              >
+            </div>
+            <span class="planner-btn-arrow">→</span>
+          </button>
         </div>
-    </div>
+      </div>
       <!-- ============================================
          PAGINA MISSIONI
          ============================================ -->
@@ -292,64 +352,77 @@
         <div id="profile-content"></div>
       </div>
 
-                <!-- ============================================
+      <!-- ============================================
          PAGINA FEEDBACK
          ============================================ -->
-    <div class="page page-hidden" id="page-feedback">
-
+      <div class="page page-hidden" id="page-feedback">
         <div class="page-header">
-            <h2>💬 FEEDBACK</h2>
-            <p class="page-subtitle">Aiutaci a migliorare Protox</p>
+          <h2>💬 FEEDBACK</h2>
+          <p class="page-subtitle">Aiutaci a migliorare Protox</p>
         </div>
 
         <div id="feedback-content"></div>
-
-    </div>
+      </div>
     </div>
 
     <!-- ============================================
      TAB BAR (navigazione)
      ============================================ -->
-<nav id="tab-bar">
-    <button class="tab-btn tab-active" id="tab-home" onclick="Navigation.goTo('home')">
+    <nav id="tab-bar">
+      <button
+        class="tab-btn tab-active"
+        id="tab-home"
+        onclick="Navigation.goTo('home')"
+      >
         <span class="tab-icon">🏠</span>
         <span class="tab-label">Home</span>
-    </button>
-    <button class="tab-btn" id="tab-missions" onclick="Navigation.goTo('missions')">
+      </button>
+      <button
+        class="tab-btn"
+        id="tab-missions"
+        onclick="Navigation.goTo('missions')"
+      >
         <span class="tab-icon">🎯</span>
         <span class="tab-label">Missioni</span>
-    </button>
-    <button class="tab-btn" id="tab-timer" onclick="Navigation.goTo('timer')">
+      </button>
+      <button class="tab-btn" id="tab-timer" onclick="Navigation.goTo('timer')">
         <span class="tab-icon">⏱️</span>
         <span class="tab-label">Timer</span>
-    </button>
-    <button class="tab-btn" id="tab-stats" onclick="Navigation.goTo('stats')">
+      </button>
+      <button class="tab-btn" id="tab-stats" onclick="Navigation.goTo('stats')">
         <span class="tab-icon">📊</span>
         <span class="tab-label">Stats</span>
-    </button>
-    <button class="tab-btn" id="tab-feedback" onclick="Navigation.goTo('feedback')">
+      </button>
+      <button
+        class="tab-btn"
+        id="tab-feedback"
+        onclick="Navigation.goTo('feedback')"
+      >
         <span class="tab-icon">💬</span>
         <span class="tab-label">Feedback</span>
-    </button>
-    <button class="tab-btn" id="tab-profile" onclick="Navigation.goTo('profile')">
+      </button>
+      <button
+        class="tab-btn"
+        id="tab-profile"
+        onclick="Navigation.goTo('profile')"
+      >
         <span class="tab-icon">👤</span>
         <span class="tab-label">Profilo</span>
-    </button>
-</nav>
-
+      </button>
+    </nav>
 
     <!-- ============================================
          PLANNER OVERLAY
          ============================================ -->
     <div id="planner-overlay" class="hidden">
-        <div id="planner-panel">
-            <div class="planner-panel-header">
-                <h2>📅 PLANNER</h2>
-                <p class="planner-panel-subtitle">I tuoi 90 giorni</p>
-                <button class="planner-close-btn" onclick="Planner.close()">✕</button>
-            </div>
-            <div id="planner-content"></div>
+      <div id="planner-panel">
+        <div class="planner-panel-header">
+          <h2>📅 PLANNER</h2>
+          <p class="planner-panel-subtitle">I tuoi 90 giorni</p>
+          <button class="planner-close-btn" onclick="Planner.close()">✕</button>
         </div>
+        <div id="planner-content"></div>
+      </div>
     </div>
 
     <!-- ============================================
@@ -366,12 +439,12 @@
     <!-- SCRIPTS - Ordine IMPORTANTE -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<!-- Supabase -->
+    <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
     <script src="modules/storage.js"></script>
 
-<!-- Cloud/Auth (devono stare DOPO storage.js) -->
+    <!-- Cloud/Auth (devono stare DOPO storage.js) -->
     <script src="modules/supabase-config.js"></script>
     <script src="modules/auth.js"></script>
     <script src="modules/cloud-sync.js"></script>

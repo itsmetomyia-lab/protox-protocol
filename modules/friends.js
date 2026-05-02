@@ -72,11 +72,19 @@ open() {
     if (e.target === overlay) this.close();
   });
 
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
+document.body.appendChild(overlay);
+document.body.style.overflow = 'hidden';
 
-  this.render();
-  this.refresh();
+// 1 frame per permettere al browser di “pitturare” lo stato iniziale
+requestAnimationFrame(() => {
+  overlay.classList.add('friends-in');
+
+  // render/refresh al frame dopo, così non mangiano l’animazione
+  requestAnimationFrame(() => {
+    this.render();
+    this.refresh();
+  });
+});
 },
 
 close() {
