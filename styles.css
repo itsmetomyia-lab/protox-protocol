@@ -9773,11 +9773,7 @@ body.light-mode #darklight-icon::before{
   align-items: center;
   justify-content: center;
 
-  padding:
-    max(16px, env(safe-area-inset-top, 0px))
-    16px
-    max(16px, env(safe-area-inset-bottom, 0px));
-
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
   background:
     radial-gradient(900px 420px at 30% 0%, rgba(139,92,246,0.20), transparent 60%),
     rgba(8, 8, 16, 0.78);
@@ -9785,7 +9781,8 @@ body.light-mode #darklight-icon::before{
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-  animation: friendsIn 0.18s ease;
+  /* OPEN: fade-in visibile */
+  animation: friendsIn 0.22s ease both;
 }
 
 @keyframes friendsIn{
@@ -9793,7 +9790,7 @@ body.light-mode #darklight-icon::before{
   to{ opacity: 1; }
 }
 
-/* usato da Friends.close(): overlay.style.animation = 'friendsOut ...' */
+/* usato da Friends.close(): overlay.style.animation = 'friendsOut 0.18s ease forwards' */
 @keyframes friendsOut{
   from{ opacity: 1; }
   to{ opacity: 0; }
@@ -9818,15 +9815,36 @@ body.light-mode #darklight-icon::before{
   border: 1px solid rgba(255,255,255,0.10);
   box-shadow: 0 34px 110px rgba(0,0,0,0.62);
 
-  animation: friendsPop 0.20s ease;
   position: relative;
+
+  /* OPEN: pop da centro (molto evidente) */
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both;
 }
 
-@keyframes friendsPop{
-  from{ transform: translateY(10px) scale(0.985); opacity: 0.85; }
-  to{ transform: translateY(0) scale(1); opacity: 1; }
+@keyframes friendsPanelIn{
+  0%   { transform: scale(0.82); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
 }
 
+/* CLOSE: solo CSS (si attiva perché Friends.close() mette inline "friendsOut" sullo style dell’overlay) */
+#friends-overlay[style*="friendsOut"] #friends-panel{
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
+
+@keyframes friendsPanelOut{
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #friends-overlay,
+  #friends-panel{
+    animation: none !important;
+  }
+}
 /* bordo premium con gradient */
 #friends-panel::before{
   content:'';
@@ -10999,3 +11017,4 @@ body.light-mode #onboarding-overlay h2{
   60%  { transform: scale(0.985); opacity: 0.55; filter: blur(0.5px); }
   100% { transform: scale(0.92); opacity: 0; filter: blur(2px); }
 }
+
