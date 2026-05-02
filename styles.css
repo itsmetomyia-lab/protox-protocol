@@ -5404,12 +5404,6 @@ body.theme-custom {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(14px); }
 }
-
-@media (prefers-reduced-motion: reduce){
-  #friends-overlay{ animation: none !important; }
-  #friends-panel{ animation: none !important; }
-}
-
 /* =========================================================
    FRIENDS MODAL — POLISHED (Protox-style)
    ========================================================= */
@@ -5435,7 +5429,7 @@ body.theme-custom {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-animation: friendsIn 260ms cubic-bezier(.2,.85,.25,1) both;
+  animation: friendsIn 0.18s ease;
 }
 
 #friends-panel{
@@ -6588,7 +6582,7 @@ animation: friendsIn 260ms cubic-bezier(.2,.85,.25,1) both;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-animation: friendsIn 260ms cubic-bezier(.2,.85,.25,1) both;
+  animation: friendsIn 0.18s ease; /* riusa la tua anim già esistente */
 }
 
 .focus-container{
@@ -9791,7 +9785,7 @@ body.light-mode #darklight-icon::before{
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-animation: friendsIn 260ms cubic-bezier(.2,.85,.25,1) both;
+  animation: friendsIn 0.18s ease;
 }
 
 @keyframes friendsIn{
@@ -9824,15 +9818,13 @@ animation: friendsIn 260ms cubic-bezier(.2,.85,.25,1) both;
   border: 1px solid rgba(255,255,255,0.10);
   box-shadow: 0 34px 110px rgba(0,0,0,0.62);
 
-animation: friendsPop 420ms cubic-bezier(.2,.95,.2,1) both; will-change: transform, opacity; transform-origin: 50% 60%;
+  animation: friendsPop 0.20s ease;
   position: relative;
 }
 
-
 @keyframes friendsPop{
-  0%{ transform: translateY(22px) scale(0.88); opacity: 0; filter: blur(2px); }
-  62%{ transform: translateY(-2px) scale(1.045); opacity: 1; filter: blur(0); }
-  100%{ transform: translateY(0) scale(1); opacity: 1; filter: none; }
+  from{ transform: translateY(10px) scale(0.985); opacity: 0.85; }
+  to{ transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* bordo premium con gradient */
@@ -11006,223 +10998,4 @@ body.light-mode #onboarding-overlay h2{
   0%   { transform: scale(1); opacity: 1; filter: blur(0px); }
   60%  { transform: scale(0.985); opacity: 0.55; filter: blur(0.5px); }
   100% { transform: scale(0.92); opacity: 0; filter: blur(2px); }
-}
-
-/* ============================================
-   FRIENDS OVERLAY — open/close animation
-   Targets: #friends-overlay, #friends-panel (modules/friends.js)
-============================================ */
-
-#friends-overlay.friends-anim{
-  --friends-dur: 180ms;
-  --friends-ease: cubic-bezier(.2,.85,.25,1);
-
-  transition: opacity var(--friends-dur) var(--friends-ease);
-  opacity: 0;
-}
-
-#friends-overlay.friends-anim #friends-panel{
-  transform: translateY(18px) scale(0.985);
-  opacity: 0;
-  transition:
-    transform var(--friends-dur) var(--friends-ease),
-    opacity var(--friends-dur) ease;
-  will-change: transform, opacity;
-}
-
-#friends-overlay.friends-anim.friends-anim-in{
-  opacity: 1;
-}
-
-#friends-overlay.friends-anim.friends-anim-in #friends-panel{
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-#friends-overlay.friends-anim.friends-anim-out{
-  opacity: 0;
-}
-
-#friends-overlay.friends-anim.friends-anim-out #friends-panel{
-  transform: translateY(10px) scale(0.99);
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce){
-  #friends-overlay.friends-anim,
-  #friends-overlay.friends-anim #friends-panel{
-    transition: none !important;
-  }
-
-  #friends-overlay.friends-anim{
-    opacity: 1 !important;
-  }
-
-  #friends-overlay.friends-anim #friends-panel{
-    transform: none !important;
-    opacity: 1 !important;
-  }
-}
-
-
-/* ============================================
-   FRIENDS OVERLAY — premium open/close motion
-   DOM (modules/friends.js):
-   - #friends-overlay
-   - #friends-panel
-   - #friends-content
-   Close hook (Friends.close()):
-   - overlay.style.animation = 'friendsOut 0.18s ease forwards'
-============================================ */
-
-/* FULLSCREEN overlay + fade-in */
-#friends-overlay{
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 18px 14px;
-  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-
-  background: rgba(0,0,0,0.62);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-
-  animation: friendsOverlayIn 220ms cubic-bezier(.2,.85,.25,1) both;
-}
-
-/* Panel: POP from ~0 to full size (center) */
-#friends-panel{
-  width: min(520px, calc(100vw - 28px));
-  max-height: min(82vh, 720px);
-
-  border-radius: 22px;
-  position: relative;
-  overflow: hidden;
-
-  background: rgba(12, 12, 22, 0.74);
-  border: 1px solid rgba(255,255,255,0.12);
-
-  box-shadow:
-    0 26px 70px rgba(0,0,0,0.58),
-    0 0 0 1px rgba(255,255,255,0.06) inset;
-
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-
-  transform-origin: 50% 55%;
-  will-change: transform, opacity, filter;
-
-  animation: friendsPanelPopIn 520ms cubic-bezier(.16,1,.3,1) both;
-}
-
-/* conic/gradient border (important overlay) */
-#friends-panel::before{
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-
-  background: conic-gradient(
-    from 180deg,
-    rgba(139,92,246,0.95),
-    rgba(56,189,248,0.70),
-    rgba(16,185,129,0.65),
-    rgba(251,191,36,0.55),
-    rgba(139,92,246,0.95)
-  );
-
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-/* 2px top gradient highlight */
-#friends-panel::after{
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.95), transparent);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-/* Typography polish (uses existing fonts in app) */
-#friends-panel .friends-title h2{
-  font-family: 'Orbitron', sans-serif;
-  letter-spacing: 3px;
-}
-#friends-panel .friends-subtitle{
-  font-family: 'Rajdhani', sans-serif;
-}
-
-/* OPEN keyframes */
-@keyframes friendsOverlayIn{
-  from{ opacity: 0; }
-  to{ opacity: 1; }
-}
-
-/* “from 0 in center -> pop -> settle” */
-@keyframes friendsPanelPopIn{
-  0%{
-    transform: translate3d(0, 10px, 0) scale(0.12);
-    opacity: 0;
-    filter: blur(3px);
-  }
-  62%{
-    transform: translate3d(0, -2px, 0) scale(1.06);
-    opacity: 1;
-    filter: blur(0);
-  }
-  100%{
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 1;
-    filter: none;
-  }
-}
-
-/* CLOSE keyframes name MUST match Friends.close() */
-@keyframes friendsOut{
-  from{ opacity: 1; }
-  to{ opacity: 0; }
-}
-
-/* when JS sets inline animation friendsOut on #friends-overlay, animate the panel too */
-#friends-overlay[style*="friendsOut"] #friends-panel{
-  animation: friendsPanelPopOut 180ms cubic-bezier(.4,0,1,1) forwards;
-}
-
-@keyframes friendsPanelPopOut{
-  from{
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 1;
-    filter: none;
-  }
-  to{
-    transform: translate3d(0, 8px, 0) scale(0.72);
-    opacity: 0;
-    filter: blur(2px);
-  }
-}
-
-/* reduced motion */
-@media (prefers-reduced-motion: reduce){
-  #friends-overlay,
-  #friends-panel,
-  #friends-overlay[style*="friendsOut"] #friends-panel{
-    animation: none !important;
-  }
 }

@@ -3,7 +3,7 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v9';
+const CACHE_NAME = 'protox-v10';
 
 const ASSETS = [
   '/',
