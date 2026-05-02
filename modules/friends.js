@@ -53,6 +53,7 @@ open() {
 
   const overlay = document.createElement('div');
   overlay.id = 'friends-overlay';
+  overlay.classList.add('friends-anim');
 
   overlay.innerHTML = `
     <div id="friends-panel">
@@ -72,22 +73,31 @@ open() {
     if (e.target === overlay) this.close();
   });
 
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
+document.body.appendChild(overlay);
 
-  this.render();
-  this.refresh();
+// trigger anim apertura (next frame)
+requestAnimationFrame(() => {
+  overlay.classList.add('friends-anim-in');
+});
+
+document.body.style.overflow = 'hidden';
+
+this.render();
+this.refresh();
 },
 
 close() {
   const overlay = document.getElementById('friends-overlay');
   if (!overlay) return;
 
-  overlay.style.animation = 'friendsOut 0.18s ease forwards';
-  setTimeout(() => {
-    overlay.remove();
-    document.body.style.overflow = '';
-  }, 180);
+// trigger anim chiusura (CSS transitions)
+overlay.classList.remove('friends-anim-in');
+overlay.classList.add('friends-anim-out');
+
+setTimeout(() => {
+  overlay.remove();
+  document.body.style.overflow = '';
+}, 180);
 },
 
 setTab(tab) {
