@@ -10241,3 +10241,761 @@ body.light-mode #darklight-icon::before{
   border-color: rgba(139,92,246,0.25) !important;
   box-shadow: 0 0 18px rgba(139,92,246,0.12) !important;
 }
+
+/* ============================================
+   ONBOARDING (WELCOME) — PREMIUM / POLISHED
+   Markup generato da modules/profile.js:
+   #onboarding-overlay, .onboarding-container, .onboarding-step, ecc.
+   ============================================ */
+
+body.onboarding-active{
+  overflow: hidden;
+}
+
+/* (optional ma bello) sfoca leggermente l’app sotto mentre onboardi */
+body.onboarding-active #app{
+  filter: blur(10px) saturate(1.05);
+  opacity: 0.65;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Overlay full screen */
+#onboarding-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px));
+
+  background:
+    radial-gradient(900px 420px at 30% 0%, rgba(139,92,246,0.22), transparent 60%),
+    rgba(8, 8, 16, 0.82);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Card centrale */
+#onboarding-overlay .onboarding-container{
+  width: min(560px, 92vw);
+  max-height: min(90vh, 860px);
+  overflow: hidden;
+  border-radius: 24px;
+
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(139,92,246,0.18), transparent 55%),
+    radial-gradient(800px 360px at 95% 10%, rgba(16,185,129,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 34px 110px rgba(0,0,0,0.62);
+  position: relative;
+}
+
+/* bordo “spaziale” con gradient */
+#onboarding-overlay .onboarding-container::before{
+  content:'';
+  position:absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 24px;
+  pointer-events:none;
+
+  background: conic-gradient(
+    from 180deg,
+    rgba(139,92,246,0.00),
+    rgba(139,92,246,0.55),
+    rgba(16,185,129,0.35),
+    rgba(139,92,246,0.55),
+    rgba(139,92,246,0.00)
+  );
+
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+
+  opacity: 0.55;
+}
+
+/* texture/noise leggerissima */
+#onboarding-overlay .onboarding-container::after{
+  content:'';
+  position:absolute;
+  inset: 0;
+  pointer-events:none;
+  border-radius: 24px;
+  background:
+    radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px) 0 0 / 14px 14px,
+    radial-gradient(rgba(0,0,0,0.10) 1px, transparent 1px) 6px 6px / 18px 18px;
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+}
+
+/* Step layout */
+#onboarding-overlay .onboarding-step{
+  position: relative;
+  z-index: 1;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+
+  /* scroll interno solo per step “lunghi” */
+  max-height: min(90vh, 860px);
+  overflow: auto;
+}
+
+#onboarding-overlay .onboarding-step::-webkit-scrollbar{ width: 10px; }
+#onboarding-overlay .onboarding-step::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.10);
+  border-radius: 999px;
+}
+#onboarding-overlay .onboarding-step::-webkit-scrollbar-track{ background: transparent; }
+
+/* Icona tonda */
+#onboarding-overlay .onboard-icon{
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(139,92,246,0.14);
+  border: 1px solid rgba(139,92,246,0.28);
+  box-shadow: 0 0 18px rgba(139,92,246,0.18);
+
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* Se l’icona è vuota in alcuni step, gliene diamo una via CSS */
+#onboard-step-2 .onboard-icon:empty::before{ content: "🧬"; }
+#onboard-step-4 .onboard-icon:empty::before{ content: "⚠️"; }
+#onboard-step-5 .onboard-icon:empty::before{ content: "🪪"; }
+
+/* Titoli */
+#onboarding-overlay h1,
+#onboarding-overlay h2{
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 3px;
+  color: white;
+  text-shadow: 0 0 18px var(--purple-glow);
+}
+
+#onboarding-overlay h1{ font-size: 1.35rem; }
+#onboarding-overlay h2{ font-size: 0.92rem; }
+
+/* Divider */
+#onboarding-overlay .onboard-divider{
+  width: 72%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.85), transparent);
+  opacity: 0.85;
+}
+
+/* Hero text */
+#onboarding-overlay .onboard-hero{
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: rgba(255,255,255,0.92);
+}
+
+/* Block testo step 2 */
+#onboarding-overlay .onboard-block{
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+#onboarding-overlay .onboard-block p{
+  margin: 0 0 10px;
+  color: rgba(255,255,255,0.86);
+  font-weight: 700;
+  line-height: 1.35;
+}
+#onboarding-overlay .onboard-block p:last-child{ margin-bottom: 0; }
+
+/* Rules (step 3) */
+#onboarding-overlay .onboard-rules{
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+#onboarding-overlay .onboard-rule{
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+
+  padding: 12px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+#onboarding-overlay .rule-icon{
+  width: 40px;
+  height: 40px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(139,92,246,0.10);
+  border: 1px solid rgba(139,92,246,0.22);
+}
+
+#onboard-step-3 .onboard-rule:nth-child(1) .rule-icon::before{ content:"🎯"; }
+#onboard-step-3 .onboard-rule:nth-child(2) .rule-icon::before{ content:"🔥"; }
+#onboard-step-3 .onboard-rule:nth-child(3) .rule-icon::before{ content:"💪"; }
+#onboard-step-3 .onboard-rule:nth-child(4) .rule-icon::before{ content:"📈"; }
+
+#onboarding-overlay .rule-text strong{
+  display: block;
+  color: white;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+#onboarding-overlay .rule-text span{
+  display: block;
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+/* Disclaimer (step 4) */
+#onboarding-overlay .onboard-disclaimer{
+  width: 100%;
+  max-height: 300px;
+  overflow: auto;
+
+  padding: 12px;
+  border-radius: 18px;
+
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+#onboarding-overlay .disclaimer-section{
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+#onboarding-overlay .disclaimer-section:last-child{ margin-bottom: 0; }
+
+#onboarding-overlay .disclaimer-section h3{
+  margin: 0 0 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.70rem;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.92);
+}
+
+#onboarding-overlay .disclaimer-section p{
+  margin: 0;
+  color: rgba(255,255,255,0.84);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Accept checkbox custom */
+#onboarding-overlay .accept-label{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: center;
+
+  padding: 10px 12px;
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+  user-select: none;
+}
+
+#onboarding-overlay .accept-label input{
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#onboarding-overlay .accept-checkmark{
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.03);
+  display: grid;
+  place-items: center;
+}
+
+#onboarding-overlay #accept-check:checked + .accept-checkmark{
+  background: rgba(16,185,129,0.16);
+  border-color: rgba(16,185,129,0.35);
+  box-shadow: 0 0 14px rgba(16,185,129,0.14);
+}
+
+#onboarding-overlay #accept-check:checked + .accept-checkmark::before{
+  content: "✓";
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: rgba(16,185,129,0.95);
+}
+
+#onboarding-overlay .accept-text{
+  color: rgba(255,255,255,0.88);
+  font-weight: 800;
+}
+
+/* Step 5 (nome) */
+#onboarding-overlay .onboard-name-desc{
+  margin: 0;
+  color: var(--text-dim);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+#onboarding-overlay .onboard-input{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.92);
+
+  outline: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+#onboarding-overlay .onboard-input:focus{
+  border-color: rgba(139,92,246,0.40);
+  box-shadow: 0 0 22px rgba(139,92,246,0.16);
+}
+
+/* CTA button */
+#onboarding-overlay .onboard-btn{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 18px;
+
+  border: 1px solid rgba(139,92,246,0.35);
+  background: rgba(139,92,246,0.16);
+  color: white;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+#onboarding-overlay .onboard-btn:hover{
+  border-color: rgba(139,92,246,0.45);
+  box-shadow: 0 0 22px rgba(139,92,246,0.18);
+  transform: translateY(-1px);
+}
+
+#onboarding-overlay .onboard-btn:active{
+  transform: translateY(0) scale(0.98);
+}
+
+#onboarding-overlay .onboard-btn.disabled{
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Light mode: overlay resta premium e leggibile */
+body.light-mode #onboarding-overlay{
+  background:
+    radial-gradient(900px 420px at 30% 0%, rgba(139,92,246,0.18), transparent 60%),
+    rgba(245, 245, 255, 0.86);
+}
+body.light-mode #onboarding-overlay .onboarding-container{
+  border-color: rgba(0,0,0,0.08);
+}
+body.light-mode #onboarding-overlay h1,
+body.light-mode #onboarding-overlay h2{
+  color: rgba(12,12,20,0.92);
+  text-shadow: none;
+}
+
+/* ONBOARDING STEP 3: evita emoji doppie nelle regole (COME FUNZIONA) */
+#onboard-step-3 .rule-icon::after{
+  content: none !important;
+  display: none !important;
+}
+
+/* reset totale del before (poi lo rimettiamo in modo controllato) */
+#onboard-step-3 .rule-icon::before{
+  content: none !important;
+}
+
+/* metti UNA sola emoji, solo se lo span è vuoto */
+#onboard-step-3 .onboard-rule:nth-child(1) .rule-icon:empty::before{ content:"🎯"; }
+#onboard-step-3 .onboard-rule:nth-child(2) .rule-icon:empty::before{ content:"🔥"; }
+#onboard-step-3 .onboard-rule:nth-child(3) .rule-icon:empty::before{ content:"💪"; }
+#onboard-step-3 .onboard-rule:nth-child(4) .rule-icon:empty::before{ content:"📈"; }
+
+/* micro-polish: centra e uniforma */
+#onboard-step-3 .rule-icon{
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+#onboard-step-3 .rule-icon:empty::before{
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1;
+  font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+
+/* ============================================
+   RESET TOTALE — PREMIUM (Profile.resetProgress)
+   Hook:
+   - profile: .profile-danger, .danger-btn, .danger-text
+   - popup: #reset-popup, .reset-container, .reset-*
+   ============================================ */
+
+/* “Danger zone” nella pagina profilo */
+.profile-danger{
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 18px;
+
+  background: linear-gradient(180deg, rgba(239,68,68,0.10), rgba(255,255,255,0.02));
+  border: 1px solid rgba(239,68,68,0.22);
+  box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-danger::before{
+  content:'';
+  position:absolute;
+  left:0; right:0; top:0;
+  height:2px;
+  background: linear-gradient(90deg, transparent, rgba(239,68,68,0.85), transparent);
+  opacity:0.75;
+}
+
+.danger-btn{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.14);
+  color: rgba(239,68,68,0.96);
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.danger-btn:hover{
+  border-color: rgba(239,68,68,0.55);
+  box-shadow: 0 0 22px rgba(239,68,68,0.18);
+  transform: translateY(-1px);
+}
+
+.danger-btn:active{
+  transform: translateY(0) scale(0.98);
+}
+
+.danger-text{
+  margin: 10px 0 0;
+  color: rgba(255,255,255,0.72);
+  font-weight: 800;
+  text-align: center;
+}
+
+/* ===== Popup reset ===== */
+#reset-popup{
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px));
+
+  background:
+    radial-gradient(900px 420px at 30% 0%, rgba(239,68,68,0.18), transparent 60%),
+    rgba(8, 8, 16, 0.82);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  animation: resetFadeIn 0.18s ease;
+}
+
+@keyframes resetFadeIn{
+  from{ opacity: 0; }
+  to{ opacity: 1; }
+}
+
+.reset-container{
+  width: min(560px, 92vw);
+  max-height: min(90vh, 860px);
+  overflow: auto;
+
+  border-radius: 24px;
+  padding: 16px;
+
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(239,68,68,0.16), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 34px 110px rgba(0,0,0,0.62);
+
+  position: relative;
+  overflow: hidden;
+
+  animation: resetPopIn 0.20s ease;
+}
+
+@keyframes resetPopIn{
+  from{ transform: translateY(10px) scale(0.985); opacity: 0.85; }
+  to{ transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* bordo premium conic */
+.reset-container::before{
+  content:'';
+  position:absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 24px;
+  pointer-events:none;
+
+  background: conic-gradient(
+    from 180deg,
+    rgba(239,68,68,0.00),
+    rgba(239,68,68,0.55),
+    rgba(139,92,246,0.28),
+    rgba(239,68,68,0.55),
+    rgba(239,68,68,0.00)
+  );
+
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+
+  opacity: 0.55;
+}
+
+.reset-icon{
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+
+  background: rgba(239,68,68,0.14);
+  border: 1px solid rgba(239,68,68,0.30);
+  box-shadow: 0 0 18px rgba(239,68,68,0.16);
+
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.reset-container h2{
+  margin: 0;
+  text-align: center;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 3px;
+  color: white;
+  text-shadow: 0 0 18px rgba(239,68,68,0.16);
+}
+
+.reset-warning{
+  margin: 10px 0 0;
+  text-align: center;
+  color: rgba(255,255,255,0.85);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.reset-stats-preview{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.reset-stat-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  color: rgba(255,255,255,0.78);
+  font-weight: 750;
+}
+.reset-stat-row:last-child{ border-bottom: none; }
+
+.reset-stat-value{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.70rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.reset-confirm-text{
+  margin: 14px 0 8px;
+  text-align: center;
+  color: var(--text-dim);
+  font-weight: 850;
+}
+
+.reset-input{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.92);
+
+  outline: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.reset-input:focus{
+  border-color: rgba(239,68,68,0.45);
+  box-shadow: 0 0 22px rgba(239,68,68,0.16);
+}
+
+/* Bottoni */
+.reset-buttons{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.reset-cancel-btn,
+.reset-confirm-btn{
+  padding: 14px 12px;
+  border-radius: 18px;
+
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.reset-cancel-btn{
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.86);
+}
+
+.reset-cancel-btn:hover{
+  border-color: rgba(139,92,246,0.30);
+  box-shadow: 0 0 18px rgba(139,92,246,0.12);
+  transform: translateY(-1px);
+}
+
+/* Di default “bloccato” finché non scrivi RESET */
+.reset-confirm-btn{
+  background: rgba(239,68,68,0.10);
+  border: 1px solid rgba(239,68,68,0.22);
+  color: rgba(239,68,68,0.92);
+
+  opacity: 0.42;
+  pointer-events: none; /* importante: JS abilita solo con .enabled */
+}
+
+.reset-confirm-btn.enabled{
+  opacity: 1;
+  pointer-events: auto;
+
+  background: rgba(239,68,68,0.16);
+  border-color: rgba(239,68,68,0.40);
+  color: rgba(239,68,68,0.98);
+}
+
+.reset-confirm-btn.enabled:hover{
+  box-shadow: 0 0 22px rgba(239,68,68,0.18);
+  transform: translateY(-1px);
+}
+
+.reset-cancel-btn:active,
+.reset-confirm-btn.enabled:active{
+  transform: translateY(0) scale(0.98);
+}
+
+.reset-final-warning{
+  margin: 12px 0 0;
+  text-align: center;
+  color: rgba(239,68,68,0.90);
+  font-weight: 900;
+}
+
+/* Animazione “distruzione” chiamata da JS: resetDestroy 0.5s */
+@keyframes resetDestroy{
+  0%   { transform: scale(1); opacity: 1; filter: blur(0px); }
+  60%  { transform: scale(0.985); opacity: 0.55; filter: blur(0.5px); }
+  100% { transform: scale(0.92); opacity: 0; filter: blur(2px); }
+}

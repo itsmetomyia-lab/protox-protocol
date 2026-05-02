@@ -12,6 +12,22 @@ const Changelog = {
     // L'utente vedrà il popup UNA SOLA VOLTA per ogni versione
     updates: [
 
+{
+  version: 'RC 0.0.1',
+  date: '2026-05-02',
+  title: '🚀 RC: PREMIUM POLISH PASS',
+  highlights: [
+    'UI premium end-to-end: Home, Timer, Focus Mode, Planner, Friends, Stats',
+    'Fix PWA caching: JS/CSS in network-first → niente più hard refresh per vedere gli update',
+    'Planner: overlay + griglia 90 giorni + day detail + azioni pianificate super polished',
+    'Friends: overlay premium + stats friend + tab + conferme più pulite',
+    'Stats: redesign completo (countdown 90 giorni, ultimi 7 giorni, calendario attività, barre categorie, record)',
+    'Onboarding/WELCOME: welcome + “come funziona” + nome con look premium + animazioni',
+    'Reset Totale: modal premium + animazione destroy'
+  ],
+  type: 'major'
+},
+
         {
   version: 'BETA 0.0.2',
   date: '2026-04-30',
