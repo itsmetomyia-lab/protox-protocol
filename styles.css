@@ -12032,3 +12032,79 @@ html body #changename-popup .changename-container::after{
   }
 }
 
+
+/* =========================================================
+   RENAME POPUP (Nome / Nome Protocollo)
+   Entrata identica a Friends (friends-in + friendsIn/friendsPanelIn)
+========================================================= */
+
+/* Keyframes (se già esistono nel tuo CSS, lascia comunque: al massimo le “rifissi” uguali) */
+@keyframes friendsIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes friendsOut { from { opacity: 1; } to { opacity: 0; } }
+
+@keyframes friendsPanelIn {
+  0%   { transform: scale(0.82); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes friendsPanelOut {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
+}
+
+/* Stato base: overlay “pronto”, ma l’animazione parte quando arriva .friends-in */
+html body #changename-popup{
+  /* non tocco layout/colori se li hai già; mi limito all’animazione */
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* Trigger d’ingresso (uguale a Friends.open -> classList.add('friends-in')) */
+html body #changename-popup.friends-in{
+  animation: friendsIn 0.22s ease both !important;
+  opacity: 1;
+}
+
+/* Panel/card: target principale */
+html body #changename-popup .changename-container,
+html body #changename-popup > div{
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+
+  /* pre-state (così quando parte la keyframe si vede davvero il pop-in) */
+  transform: scale(0.82);
+  opacity: 0;
+}
+
+/* Entrata panel */
+html body #changename-popup.friends-in .changename-container,
+html body #changename-popup.friends-in > div{
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both !important;
+}
+
+/* Non rompere il flash che applichi via JS (nameChangeFlash) */
+html body #changename-popup .changename-container[style*="nameChangeFlash"]{
+  animation: nameChangeFlash 0.5s ease !important;
+}
+
+/* Uscita: tu in close() setti dataset.closing e anche friendsOut inline */
+html body #changename-popup[data-closing="1"]{
+  animation: friendsOut 0.18s ease forwards !important;
+}
+html body #changename-popup[data-closing="1"] .changename-container,
+html body #changename-popup[data-closing="1"] > div{
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
+
+/* Accessibilità */
+@media (prefers-reduced-motion: reduce){
+  html body #changename-popup,
+  html body #changename-popup .changename-container,
+  html body #changename-popup > div{
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+

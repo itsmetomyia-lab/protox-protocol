@@ -228,6 +228,8 @@ const Profile = {
     changeName() {
         const popup = document.createElement('div');
         popup.id = 'changename-popup';
+
+        
         
         const player = loadPlayer();
         
@@ -272,6 +274,9 @@ const Profile = {
         
         document.body.appendChild(popup);
         document.body.style.overflow = 'hidden';
+        
+        // stesso trigger di Friends.open()
+requestAnimationFrame(() => popup.classList.add('friends-in'));
 
 // chiudi cliccando sul backdrop (fuori dalla card)
 popup.addEventListener('mousedown', (e) => {
@@ -682,6 +687,8 @@ changeProtocolName() {
   document.body.appendChild(popup);
 
   document.body.style.overflow = 'hidden';
+  // stesso trigger di Friends.open()
+requestAnimationFrame(() => popup.classList.add('friends-in'));
 
   setTimeout(() => {
 
@@ -738,8 +745,13 @@ submitProtocolName() {
   Storage.save('protocol_name', newName);
 
   // Aggiorna header
-  const header = document.querySelector('#header h1');
-  if (header) header.textContent = `⚡ ${newName}`;
+const header = document.querySelector('#header h1');
+if (header) {
+  header.textContent = `⚡ ${newName}`;
+  header.classList.remove('protox-rename-pop');
+  void header.offsetWidth; // retrigger
+  header.classList.add('protox-rename-pop');
+}
 
   this.closeProtocolName();
 
