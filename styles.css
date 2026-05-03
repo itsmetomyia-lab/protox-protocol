@@ -11312,3 +11312,723 @@ body.light-mode #onboarding-overlay h2{
   border-color: rgba(139,92,246,0.35);
   box-shadow: 0 0 0 1px rgba(139,92,246,0.10) inset, 0 0 18px rgba(139,92,246,0.12);
 }
+
+
+/* ============================================
+   PREMIUM POPUP — Change Name / Protocol Name
+   Hook: #changename-popup + .changename-*
+   ============================================ */
+
+#changename-popup{
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px));
+
+  /* overlay glossy */
+  background:
+    radial-gradient(900px 420px at 28% 0%, rgba(139,92,246,0.22), transparent 60%),
+    radial-gradient(800px 420px at 92% 10%, rgba(16,185,129,0.10), transparent 65%),
+    rgba(8,8,16,0.78);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  animation: changenameOverlayIn 0.22s ease both;
+}
+
+@keyframes changenameOverlayIn{
+  from{ opacity: 0; }
+  to  { opacity: 1; }
+}
+
+#changename-popup .changename-container{
+  width: min(560px, 100%);
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+
+  padding: 18px 18px 16px;
+
+  /* card premium (simile alle altre card dell’app) */
+  background:
+    radial-gradient(900px 420px at 18% -12%, rgba(139,92,246,0.16), transparent 55%),
+    radial-gradient(760px 360px at 96% 8%, rgba(16,185,129,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 34px 110px rgba(0,0,0,0.62);
+
+  animation: changenamePanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+
+    /* bordi più netti durante scale/blur */
+  isolation: isolate;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+
+  /* clip più “chirurgico” del solo overflow:hidden */
+  clip-path: inset(0 round 22px);
+}
+
+/* sheen / gloss */
+#changename-popup .changename-container::before{
+  border-radius: inherit;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0.10) 22%,
+    transparent 45%
+  );
+  opacity: 0.55;
+  transform: translateX(-30%);
+  pointer-events: none;
+}
+
+#changename-popup .changename-container::after{
+  border-radius: inherit;
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.85), transparent);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@keyframes changenamePanelIn{
+  0%   { transform: scale(0.86); opacity: 0; }
+  55%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* header */
+#changename-popup .changename-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+#changename-popup .changename-header h2{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 0 18px var(--purple-glow);
+}
+
+#changename-popup .changename-close{
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.92);
+
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#changename-popup .changename-close:hover{
+  transform: translateY(-1px);
+  background: rgba(139,92,246,0.10);
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 16px rgba(139,92,246,0.18);
+}
+
+#changename-popup .changename-close:active{
+  transform: scale(0.96);
+}
+
+/* current name block */
+#changename-popup .changename-current{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 12px 12px;
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  margin-bottom: 14px;
+}
+
+#changename-popup .changename-label{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+#changename-popup .changename-value{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 12px rgba(139,92,246,0.14);
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* avatar orb */
+#changename-popup .changename-avatar{
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  margin: 8px auto 14px;
+
+  display: grid;
+  place-items: center;
+
+  /* orb premium */
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 45%),
+    radial-gradient(circle at 70% 70%, rgba(16,185,129,0.16), transparent 55%),
+    linear-gradient(180deg, rgba(139,92,246,0.32), rgba(255,255,255,0.04));
+
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    0 18px 60px rgba(139,92,246,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+/* highlight “glassy” sopra */
+#changename-popup .changename-avatar::before{
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(80px 60px at 30% 25%, rgba(255,255,255,0.22), transparent 60%);
+  pointer-events: none;
+}
+
+/* monogram premium (NO emoji) */
+#changename-popup .changename-avatar::after{
+  content: attr(data-mark);
+  position: relative;
+  z-index: 1;
+
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+
+  color: rgba(255,255,255,0.92);
+  text-shadow:
+    0 0 18px rgba(139,92,246,0.28),
+    0 0 8px rgba(0,0,0,0.35);
+}
+
+/* field + input */
+#changename-popup .changename-field label{
+  display: block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.88);
+  margin: 0 0 8px 2px;
+}
+
+#changename-popup .changename-input{
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 14px;
+
+  background: rgba(10,10,22,0.85); /* coerente con --bg-input */
+  border: 1px solid rgba(139,92,246,0.22);
+
+  color: rgba(255,255,255,0.94);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+#changename-popup .changename-input::placeholder{
+  color: rgba(100,116,139,0.95);
+  font-weight: 600;
+}
+
+#changename-popup .changename-input:focus{
+  border-color: rgba(139,92,246,0.65);
+  box-shadow:
+    0 0 0 4px rgba(139,92,246,0.12),
+    0 0 22px rgba(139,92,246,0.18);
+  transform: translateY(-1px);
+}
+
+#changename-popup .changename-charcount{
+  margin-top: 8px;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+/* CTA */
+#changename-popup .changename-submit{
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 14px;
+
+  border-radius: 16px;
+  border: 1px solid rgba(139,92,246,0.35);
+
+  background: linear-gradient(90deg, rgba(109,40,217,0.85), rgba(139,92,246,0.92), rgba(167,139,250,0.85));
+  color: white;
+
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 18px 60px rgba(139,92,246,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+
+  transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+#changename-popup .changename-submit:hover{
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+  box-shadow:
+    0 22px 75px rgba(139,92,246,0.26),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+#changename-popup .changename-submit:active{
+  transform: translateY(0) scale(0.98);
+}
+
+#changename-popup .changename-submit.disabled{
+  opacity: 0.42;
+  filter: grayscale(0.25);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* note */
+#changename-popup .changename-note{
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+/* animazione usata dal JS: container.style.animation = 'nameChangeFlash 0.5s ease' */
+@keyframes nameChangeFlash{
+  0%{
+    transform: scale(1);
+    box-shadow: 0 34px 110px rgba(0,0,0,0.62);
+  }
+  45%{
+    transform: scale(1.02);
+    box-shadow:
+      0 0 0 4px rgba(139,92,246,0.18),
+      0 34px 110px rgba(0,0,0,0.62),
+      0 0 60px rgba(139,92,246,0.22);
+  }
+  100%{
+    transform: scale(1);
+    box-shadow: 0 34px 110px rgba(0,0,0,0.62);
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #changename-popup,
+  #changename-popup .changename-container{
+    animation: none !important;
+  }
+  #changename-popup .changename-input{
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Protocol rename orb: niente emoji, monogram premium */
+#changename-popup .changename-avatar.protocol-avatar{
+  font-size: 0; /* se per caso ci finisce testo dentro, lo nasconde */
+}
+
+/* se hai già ::before glossy sull’avatar, questo ti gestisce il “badge” centrale */
+#changename-popup .changename-avatar.protocol-avatar::after{
+  content: attr(data-mark);
+  position: relative;
+  z-index: 1;
+
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+
+  color: rgba(255,255,255,0.92);
+  text-shadow:
+    0 0 18px rgba(139,92,246,0.28),
+    0 0 8px rgba(0,0,0,0.35);
+}
+
+/* Se la confirm viene montata dentro #friends-overlay, forzala sopra al panel */
+#friends-overlay #friends-confirm-overlay{
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+}
+
+
+/* ============================================
+   PROTOCOL RENAME — redesign (no orb, no flash)
+   ============================================ */
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-card{
+  margin: 10px 0 12px;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+
+  background:
+    radial-gradient(900px 420px at 20% -12%, rgba(139,92,246,0.14), transparent 55%),
+    radial-gradient(760px 360px at 96% 8%, rgba(16,185,129,0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+
+  /* bordi puliti (anti “ritaglio brutto”) */
+  overflow: hidden;
+  clip-path: inset(0 round 16px);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-kicker{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.78);
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-tag{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  color: rgba(255,255,255,0.92);
+  background: rgba(139,92,246,0.10);
+  border: 1px solid rgba(139,92,246,0.30);
+  box-shadow: 0 0 18px rgba(139,92,246,0.12);
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-title{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 3.5px;
+  color: rgba(255,255,255,0.96);
+  text-shadow: 0 0 18px rgba(139,92,246,0.22);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  padding-bottom: 10px;
+  position: relative;
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-title::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.85), transparent);
+  opacity: 0.75;
+}
+
+#changename-popup .changename-container.protocol-rename .protocol-preview-sub{
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.62);
+  letter-spacing: 0.4px;
+}
+
+/* no “flash”: niente animazioni extra su questa modal oltre al pop-in base */
+#changename-popup .changename-container.protocol-rename{
+  animation-name: changenamePanelIn !important; /* solo entrata */
+}
+
+/* ============================================
+   CHANGE NAME / PROTOCOL NAME
+   Animazione identica a UI AMICI
+   (riusa friendsIn / friendsPanelIn / friendsOut / friendsPanelOut)
+   ============================================ */
+
+#changename-popup{
+  will-change: opacity;
+  animation: friendsIn 0.22s ease both !important;
+}
+
+#changename-popup .changename-container{
+  will-change: transform, opacity;
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both !important;
+}
+
+/* quando chiudi da JS impostiamo popup.style.animation = 'friendsOut ...'
+   e qui facciamo uscire anche la card come succede per #friends-panel */
+#changename-popup[style*="friendsOut"] .changename-container{
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
+
+@media (prefers-reduced-motion: reduce){
+  #changename-popup,
+  #changename-popup .changename-container{
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   CHANGE NAME + PROTOCOL NAME
+   Animazione identica a UI AMICI (solo CSS override)
+   Target: #changename-popup + .changename-container
+   ========================================================= */
+
+/* Overlay: stessa animazione di #friends-overlay */
+html body #changename-popup{
+  will-change: opacity;
+  animation: friendsIn 0.22s ease both !important;
+}
+
+/* Card: stessa animazione di #friends-panel */
+html body #changename-popup .changename-container{
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both !important;
+}
+
+/* Se il popup “cambia nome” usa ancora il flash su submit via inline style,
+   questo override permette a nameChangeFlash di vincere (così non lo rompi). */
+html body #changename-popup .changename-container[style*="nameChangeFlash"]{
+  animation: nameChangeFlash 0.5s ease !important;
+}
+
+/* Uscita: quando in JS fai popup.style.animation = 'friendsOut ...'
+   facciamo uscire anche la card come succede negli Amici */
+html body #changename-popup[style*="friendsOut"] .changename-container{
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
+
+/* Micro-fix “non bloccare click”: se hai layer glossy ::before/::after sopra la card */
+html body #changename-popup .changename-container::before,
+html body #changename-popup .changename-container::after{
+  pointer-events: none;
+}
+
+/* Accessibilità: se reduce motion, niente animazioni */
+@media (prefers-reduced-motion: reduce){
+  html body #changename-popup,
+  html body #changename-popup .changename-container{
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   RENAME POPUPS — HARD RESCUE (CSS ONLY)
+   - Animazione identica a UI Amici
+   - Fix click/tap mangiati da layer glossy
+   - Protocol rename: bottone cliccabile anche se resta .disabled
+   ========================================================= */
+
+/* Overlay popup */
+#changename-popup{
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: auto;
+
+  /* entry come Friends */
+  animation: friendsIn 0.22s ease both;
+  will-change: opacity;
+}
+
+/* Card */
+#changename-popup .changename-container{
+  position: relative;          /* serve per gestire z-index interno */
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+
+  /* entry come Friends */
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both;
+}
+
+/* Se hai sheen/gloss con ::before/::after sulla card, NON devono bloccare click */
+#changename-popup .changename-container::before,
+#changename-popup .changename-container::after{
+  pointer-events: none !important;
+}
+
+/* Assicura che i controlli siano “sopra” qualsiasi overlay interno */
+#changename-popup input,
+#changename-popup button,
+#changename-popup label{
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+/* Uscita: se nel tuo JS setti popup.style.animation = 'friendsOut ...' */
+#changename-popup[style*="friendsOut"]{
+  animation: friendsOut 0.18s ease forwards !important;
+}
+#changename-popup[style*="friendsOut"] .changename-container{
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
+
+/* ---- FIX SPECIFICO: Protocol rename bloccato ----
+   Se per qualunque motivo checkProtocolName() non toglie .disabled,
+   non resti “soft-lockato”: il click passa comunque e JS valida la lunghezza. */
+#protocol-name-btn.disabled{
+  pointer-events: auto !important;
+  cursor: pointer !important;
+
+  /* resta “visivamente” un po’ disabled ma non morto */
+  opacity: 0.55;
+  filter: grayscale(0.15);
+}
+
+/* Accessibilità */
+@media (prefers-reduced-motion: reduce){
+  #changename-popup,
+  #changename-popup .changename-container{
+    animation: none !important;
+  }
+}
+
+
+
+/* =========================================================
+   RENAME POPUPS (Change Name + Protocol Name)
+   Friends-like animation — CSS-only, robust
+   Target reale dal repo: #changename-popup (profile.js) <!--citation:2-->
+   ========================================================= */
+
+/* 1) Keyframes clone stile Friends */
+@keyframes pxFriendsLikeOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pxFriendsLikeOverlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes pxFriendsLikePanelIn {
+  0%   { transform: scale(0.82); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes pxFriendsLikePanelOut {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
+}
+
+/* 2) Overlay popup: forza l’entrata SEMPRE */
+html body #changename-popup{
+  /* assicurati che sia un overlay vero */
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+
+  /* animazione entrata */
+  animation: pxFriendsLikeOverlayIn 0.22s ease both !important;
+  will-change: opacity;
+}
+
+/* 3) Panel popup: nel repo è dentro, class changename-container (usata anche dal flash) <!--citation:2-->
+      Metto anche fallback su qualsiasi "div" diretto, così non dipende dal markup perfetto. */
+html body #changename-popup .changename-container,
+html body #changename-popup > div{
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+
+  animation: pxFriendsLikePanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both !important;
+}
+
+/* 4) Se nel change-name hai ancora il flash (nameChangeFlash), NON romperlo */
+html body #changename-popup .changename-container[style*="nameChangeFlash"]{
+  animation: nameChangeFlash 0.5s ease !important;
+}
+
+/* 5) Uscita: tu (o il tuo codice) stai usando friendsOut inline in close() come Friends.close() <!--citation:1-->
+      Appena compare friendsOut nello style=, facciamo uscire anche il pannello */
+html body #changename-popup[style*="friendsOut"]{
+  animation: pxFriendsLikeOverlayOut 0.18s ease forwards !important;
+}
+
+html body #changename-popup[style*="friendsOut"] .changename-container,
+html body #changename-popup[style*="friendsOut"] > div{
+  animation: pxFriendsLikePanelOut 0.18s ease forwards !important;
+}
+
+/* 6) IMPORTANT: se hai layer glossy ::before/::after sulla card, non devono mangiare click */
+html body #changename-popup .changename-container::before,
+html body #changename-popup .changename-container::after{
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce){
+  html body #changename-popup,
+  html body #changename-popup .changename-container,
+  html body #changename-popup > div{
+    animation: none !important;
+  }
+}
+

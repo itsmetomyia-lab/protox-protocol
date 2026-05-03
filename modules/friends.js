@@ -77,13 +77,45 @@ document.body.style.overflow = 'hidden';
 
 // 1 frame per permettere al browser di “pitturare” lo stato iniziale
 requestAnimationFrame(() => {
+
   overlay.classList.add('friends-in');
 
-  // render/refresh al frame dopo, così non mangiano l’animazione
+  // render al frame dopo (ok), ma refresh lo facciamo DOPO il pop-in del pannello
   requestAnimationFrame(() => {
+
     this.render();
-    this.refresh();
+
+    const panel = overlay.querySelector('#friends-panel');
+
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const kickRefresh = () => {
+      const ov = document.getElementById('friends-overlay');
+
+      // se nel frattempo hai chiuso o stai chiudendo, non refreshare
+      if (!ov) return;
+      if ((ov.style.animation || '').includes('friendsOut')) return;
+
+      this.refresh();
+    };
+
+    // Se reduce motion, l’animazione può essere disattivata (quindi niente animationend): refresh subito
+    if (reduced || !panel) {
+      kickRefresh();
+      return;
+    }
+
+    // Aspetta la fine dell’animazione di ingresso del pannello (friendsPanelIn)
+    panel.addEventListener('animationend', (e) => {
+      if (e.animationName === 'friendsPanelIn') kickRefresh();
+    }, { once: true });
+
+    // Fallback safety (nel caso l’event non arrivi)
+    setTimeout(kickRefresh, 420);
+
   });
+
 });
 },
 
@@ -470,7 +502,8 @@ confirmPopup({ title = 'CONFERMA', message = '', okText = 'OK', cancelText = 'AN
     overlay.querySelector('#friends-confirm-cancel').onclick = () => cleanup(false);
     overlay.querySelector('#friends-confirm-ok').onclick = () => cleanup(true);
 
-    document.body.appendChild(overlay);
+    const host = document.getElementById('friends-overlay') || document.body;
+host.appendChild(overlay);
   });
 },
 

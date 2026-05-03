@@ -273,6 +273,18 @@ const Profile = {
         document.body.appendChild(popup);
         document.body.style.overflow = 'hidden';
 
+// chiudi cliccando sul backdrop (fuori dalla card)
+popup.addEventListener('mousedown', (e) => {
+  if (e.target === popup) Profile.closeChangeName();
+});
+
+// chiudi con ESC
+const onEsc = (e) => {
+  if (e.key === 'Escape') Profile.closeChangeName();
+};
+popup._onEsc = onEsc;
+document.addEventListener('keydown', onEsc);
+    
         // Focus input
         setTimeout(() => {
             document.getElementById('new-name-input')?.focus();
@@ -329,12 +341,29 @@ const Profile = {
         }, 500);
     },
 
-    closeChangeName() {
-        const popup = document.getElementById('changename-popup');
-        if (popup) popup.remove();
-        document.body.style.overflow = '';
-    },
+closeChangeName() {
 
+  const popup = document.getElementById('changename-popup');
+
+  if (!popup) {
+    document.body.style.overflow = '';
+    return;
+  }
+
+  // evita doppia chiusura
+  if (popup.dataset.closing === '1') return;
+  popup.dataset.closing = '1';
+
+  popup.style.animation = 'friendsOut 0.18s ease forwards';
+
+  setTimeout(() => {
+
+    popup.remove();
+    document.body.style.overflow = '';
+
+  }, 180);
+
+},
     // Renderizza profilo
     render() {
         const container = document.getElementById('profile-content');
@@ -480,6 +509,18 @@ const Profile = {
         return '👤';
     },
 
+    getMonogram(text) {
+  const raw = String(text || '').trim().toUpperCase();
+  const clean = raw.replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!clean) return 'PX';
+
+  const parts = clean.split(' ').filter(Boolean);
+  const a = parts[0]?.[0] || 'P';
+  const b = (parts[1]?.[0] || parts[0]?.[1] || 'X');
+
+  return (a + b).slice(0, 2);
+},
+
     // Reset progresso
     resetProgress() {
         const popup = document.createElement('div');
@@ -565,96 +606,172 @@ const Profile = {
         }, 600);
     },
 
-        changeProtocolName() {
-        const popup = document.createElement('div');
-        popup.id = 'changename-popup';
+changeProtocolName() {
 
-        const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
+  const popup = document.createElement('div');
 
-        popup.innerHTML = `
-            <div class="changename-container">
-                <div class="changename-header">
-                    <h2>NOME PROTOCOLLO</h2>
-                    <button class="changename-close" onclick="Profile.closeProtocolName()">✕</button>
-                </div>
+  popup.id = 'changename-popup';
 
-                <div class="changename-current">
-                    <span class="changename-label">NOME ATTUALE</span>
-                    <span class="changename-value">${currentName}</span>
-                </div>
+  const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
 
-                <div class="changename-avatar">⚡</div>
+  popup.innerHTML = `
 
-                <div class="changename-field">
-                    <label>NUOVO NOME</label>
-                    <input type="text"
-                           id="protocol-name-input"
-                           class="changename-input"
-                           placeholder="Il nome del tuo protocollo..."
-                           maxlength="25"
-                           autocomplete="off"
-                           value=""
-                           oninput="Profile.checkProtocolName()">
-                    <div class="changename-charcount">
-                        <span id="protocol-char-count">0</span>/25
-                    </div>
-                </div>
+  <div class="changename-container protocol-rename">
 
-                <button class="changename-submit disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
-                    RINOMINA ⚡
-                </button>
+    <div class="changename-header">
 
-                <p class="changename-note">Questo nome apparirà nell'header dell'app</p>
-            </div>
-        `;
+      <h2>NOME PROTOCOLLO</h2>
 
-        document.body.appendChild(popup);
-        document.body.style.overflow = 'hidden';
+      <button class="changename-close" onclick="Profile.closeProtocolName()">✕</button>
 
-        setTimeout(() => {
-            document.getElementById('protocol-name-input')?.focus();
-        }, 300);
-    },
+    </div>
 
-    checkProtocolName() {
-        const input = document.getElementById('protocol-name-input');
-        const btn = document.getElementById('protocol-name-btn');
-        const counter = document.getElementById('protocol-char-count');
+    <div class="changename-current">
 
-        if (!input || !btn) return;
+      <span class="changename-label">NOME ATTUALE</span>
 
-        if (counter) counter.textContent = input.value.length;
+      <span class="changename-value">${currentName}</span>
 
-        if (input.value.trim().length >= 3) {
-            btn.classList.remove('disabled');
-        } else {
-            btn.classList.add('disabled');
-        }
-    },
+    </div>
 
-    submitProtocolName() {
-        const input = document.getElementById('protocol-name-input');
-        if (!input || input.value.trim().length < 3) return;
+    <!-- NEW: anteprima premium al posto dell’orb -->
+    <div class="protocol-preview-card">
 
-        const newName = input.value.trim().toUpperCase();
-        Storage.save('protocol_name', newName);
+      <div class="protocol-preview-top">
 
-        // Aggiorna header
-        const header = document.querySelector('#header h1');
-        if (header) header.textContent = `⚡ ${newName}`;
+        <span class="protocol-preview-kicker">ANTEPRIMA HEADER</span>
 
-        this.closeProtocolName();
-        showMessage(`Protocollo rinominato: ${newName}`, 'positive');
+      </div>
 
-        if (typeof Particles !== 'undefined') {
-            Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
-        }
-    },
+      <div class="protocol-preview-title" id="protocol-preview-title">${currentName}</div>
 
-    closeProtocolName() {
-        const popup = document.getElementById('changename-popup');
-        if (popup) popup.remove();
-        document.body.style.overflow = '';
-    },
+      <div class="protocol-preview-sub">Così lo vedrai in alto nell’app.</div>
+
+    </div>
+
+    <div class="changename-field">
+
+      <label>NUOVO NOME</label>
+
+      <input type="text"
+        id="protocol-name-input"
+        class="changename-input"
+        placeholder="Il nome del tuo protocollo..."
+        maxlength="25"
+        autocomplete="off"
+        value=""
+        data-current="${currentName}"
+        oninput="Profile.checkProtocolName()">
+
+      <div class="changename-charcount">
+        <span id="protocol-char-count">0</span>/25
+      </div>
+
+    </div>
+
+    <button class="changename-submit disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
+      RINOMINA
+    </button>
+
+    <p class="changename-note">Questo nome apparirà nell’header dell’app.</p>
+
+  </div>
+
+  `;
+
+  document.body.appendChild(popup);
+
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+
+    document.getElementById('protocol-name-input')?.focus();
+
+  }, 300);
+
+},
+
+ checkProtocolName() {
+
+  const input = document.getElementById('protocol-name-input');
+
+  const btn = document.getElementById('protocol-name-btn');
+
+  const counter = document.getElementById('protocol-char-count');
+
+  const preview = document.getElementById('protocol-preview-title');
+
+  if (!input || !btn) return;
+
+  const raw = input.value || '';
+  const value = raw.trim();
+  const upper = value.toUpperCase();
+
+  if (counter) counter.textContent = raw.length;
+
+  // preview: se vuoto, torna al nome attuale (salvato in data-current)
+  if (preview) {
+    preview.textContent = upper || (input.dataset.current || 'PROTOX PROTOCOL');
+  }
+
+  if (value.length >= 3) {
+
+    btn.classList.remove('disabled');
+
+  } else {
+
+    btn.classList.add('disabled');
+
+  }
+
+},
+
+
+submitProtocolName() {
+
+  const input = document.getElementById('protocol-name-input');
+
+  if (!input || input.value.trim().length < 3) return;
+
+  const newName = input.value.trim().toUpperCase();
+
+  Storage.save('protocol_name', newName);
+
+  // Aggiorna header
+  const header = document.querySelector('#header h1');
+  if (header) header.textContent = `⚡ ${newName}`;
+
+  this.closeProtocolName();
+
+  showMessage(`Protocollo rinominato: ${newName}`, 'positive');
+
+  if (typeof Particles !== 'undefined') {
+    Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
+  }
+
+},
+
+closeProtocolName() {
+
+  const popup = document.getElementById('changename-popup');
+
+  if (!popup) {
+    document.body.style.overflow = '';
+    return;
+  }
+
+  if (popup.dataset.closing === '1') return;
+  popup.dataset.closing = '1';
+
+  popup.style.animation = 'friendsOut 0.18s ease forwards';
+
+  setTimeout(() => {
+
+    popup.remove();
+    document.body.style.overflow = '';
+
+  }, 180);
+
+},
     
 };
