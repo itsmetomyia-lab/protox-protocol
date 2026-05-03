@@ -12106,5 +12106,121 @@ html body #changename-popup[data-closing="1"] > div{
   }
 }
 
+/* =========================================================
+   PROTOX – Smooth open/close for #changename-popup
+   (nome personale + nome protocollo)
+   Incolla in fondo a styles.css
+========================================================= */
 
+#changename-popup,
+#changename-popup .changename-container {
+  /* evitiamo mix di animazioni "vecchie" + nuove */
+  animation: none !important;
+}
+
+#changename-popup {
+  will-change: opacity;
+}
+
+#changename-popup .changename-container {
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  transform: translate3d(0,0,0);
+  transform-origin: center;
+}
+
+/* IN */
+#changename-popup.changename-in {
+  animation: protoxBackdropIn 220ms ease both !important;
+}
+#changename-popup.changename-in .changename-container {
+  animation: protoxCardIn 260ms cubic-bezier(.2,.9,.2,1) both !important;
+}
+
+/* OUT (normal) */
+#changename-popup.changename-out {
+  pointer-events: none;
+  animation: protoxBackdropOut 220ms ease forwards !important;
+}
+#changename-popup.changename-out .changename-container {
+  animation: protoxCardOut 220ms cubic-bezier(.4,0,.2,1) forwards !important;
+}
+
+/* OUT (success sul cambio nome personale) */
+#changename-popup.changename-success .changename-container {
+  /* piccolo "ok" visivo prima dell’uscita */
+  box-shadow: 0 0 0 1px rgba(16,185,129,.20), 0 0 26px rgba(16,185,129,.18) !important;
+}
+
+#changename-popup.changename-out-success {
+  pointer-events: none;
+  animation: protoxBackdropOut 520ms ease forwards !important;
+}
+#changename-popup.changename-out-success .changename-container {
+  animation: protoxCardSuccessOut 520ms cubic-bezier(.2,.9,.2,1) forwards !important;
+}
+
+/* Keyframes */
+@keyframes protoxBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes protoxBackdropOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes protoxCardIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0,16px,0) scale(.985);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes protoxCardOut {
+  from {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0,16px,0) scale(.985);
+  }
+}
+
+@keyframes protoxCardSuccessOut {
+  0% {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1);
+    filter: none;
+  }
+  18% {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1.02);
+    filter: saturate(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0,-10px,0) scale(.96);
+    filter: blur(2px);
+  }
+}
+
+/* Reduced motion: niente animazioni, niente attese "per forza" */
+@media (prefers-reduced-motion: reduce) {
+  #changename-popup.changename-in,
+  #changename-popup.changename-out,
+  #changename-popup.changename-out-success,
+  #changename-popup.changename-in .changename-container,
+  #changename-popup.changename-out .changename-container,
+  #changename-popup.changename-out-success .changename-container {
+    animation-duration: 1ms !important;
+  }
+}
 

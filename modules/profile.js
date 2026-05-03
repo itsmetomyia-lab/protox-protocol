@@ -273,7 +273,13 @@ const Profile = {
         `;
         
         document.body.appendChild(popup);
-        document.body.style.overflow = 'hidden';
+// lock scroll SENZA shift orizzontale (desktop scrollbar)
+const sbw = window.innerWidth - document.documentElement.clientWidth;
+document.body.style.overflow = 'hidden';
+document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+
+// trigger animazione di ingresso al frame successivo (anti-glitch)
+requestAnimationFrame(() => popup.classList.add('changename-in'));
         
         // stesso trigger di Friends.open()
 requestAnimationFrame(() => popup.classList.add('friends-in'));
@@ -313,45 +319,42 @@ document.addEventListener('keydown', onEsc);
         }
     },
 
-    submitNewName() {
-        const input = document.getElementById('new-name-input');
-        if (!input) return;
+submitNewName() {
+  const input = document.getElementById('new-name-input');
+  if (!input) return;
 
-        const newName = input.value.trim();
-        if (newName.length < 2) {
-            showMessage('Almeno 2 caratteri!', 'warning');
-            return;
-        }
+  const newName = input.value.trim();
+  if (newName.length < 2) {
+    showMessage('Almeno 2 caratteri!', 'warning');
+    return;
+  }
 
-        const player = loadPlayer();
-        const oldName = player.name;
-        player.name = newName;
-        Storage.save('player', player);
+  const player = loadPlayer();
+  const oldName = player.name;
 
-        // Animazione
-        const container = document.querySelector('.changename-container');
-        if (container) {
-            container.style.animation = 'nameChangeFlash 0.5s ease';
-        }
+  player.name = newName;
+  Storage.save('player', player);
 
-        setTimeout(() => {
-            this.closeChangeName();
-            this.updateName();
-            updateUI(player);
-            showMessage(`${oldName} → ${newName}`, 'positive');
+  // chiusura con animazione "success" (niente glitch)
+  this.closeChangeName('success');
 
-            if (typeof Particles !== 'undefined') {
-                Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
-            }
-        }, 500);
-    },
+  // aggiorna UI subito (l’overlay sta solo facendo exit)
+  this.updateName();
+  updateUI(player);
 
-closeChangeName() {
+  showMessage(`${oldName} → ${newName}`, 'positive');
 
+  if (typeof Particles !== 'undefined') {
+    Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
+  }
+},
+
+closeChangeName(mode = 'normal') {
   const popup = document.getElementById('changename-popup');
 
   if (!popup) {
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
     return;
   }
 
@@ -359,15 +362,28 @@ closeChangeName() {
   if (popup.dataset.closing === '1') return;
   popup.dataset.closing = '1';
 
-  popup.style.animation = 'friendsOut 0.18s ease forwards';
+  // se era il popup "nome personale", aveva agganciato ESC: puliamo
+  if (popup._onEsc) {
+    document.removeEventListener('keydown', popup._onEsc);
+    popup._onEsc = null;
+  }
+
+  // stop ingresso + avvia uscita
+  popup.classList.remove('changename-in');
+
+  const isSuccess = mode === 'success';
+  popup.classList.add(isSuccess ? 'changename-out-success' : 'changename-out');
+  if (isSuccess) popup.classList.add('changename-success');
+
+  const ms = isSuccess ? 520 : 220;
+
 
   setTimeout(() => {
 
     popup.remove();
     document.body.style.overflow = '';
-
-  }, 180);
-
+    document.body.style.paddingRight = '';
+  }, ms);
 },
     // Renderizza profilo
     render() {
@@ -764,26 +780,7 @@ if (header) {
 },
 
 closeProtocolName() {
-
-  const popup = document.getElementById('changename-popup');
-
-  if (!popup) {
-    document.body.style.overflow = '';
-    return;
-  }
-
-  if (popup.dataset.closing === '1') return;
-  popup.dataset.closing = '1';
-
-  popup.style.animation = 'friendsOut 0.18s ease forwards';
-
-  setTimeout(() => {
-
-    popup.remove();
-    document.body.style.overflow = '';
-
-  }, 180);
-
+  this.closeChangeName('normal');
 },
     
 };
