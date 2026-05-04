@@ -278,8 +278,7 @@ const sbw = window.innerWidth - document.documentElement.clientWidth;
 document.body.style.overflow = 'hidden';
 document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
 
-// trigger animazione di ingresso al frame successivo (anti-glitch)
-requestAnimationFrame(() => popup.classList.add('changename-in'));
+
         
         // stesso trigger di Friends.open()
 requestAnimationFrame(() => popup.classList.add('friends-in'));
@@ -336,7 +335,7 @@ submitNewName() {
   Storage.save('player', player);
 
   // chiusura con animazione "success" (niente glitch)
-  this.closeChangeName('success');
+this.closeChangeName();
 
   // aggiorna UI subito (l’overlay sta solo facendo exit)
   this.updateName();
@@ -349,7 +348,7 @@ submitNewName() {
   }
 },
 
-closeChangeName(mode = 'normal') {
+closeChangeName() {
   const popup = document.getElementById('changename-popup');
 
   if (!popup) {
@@ -362,28 +361,30 @@ closeChangeName(mode = 'normal') {
   if (popup.dataset.closing === '1') return;
   popup.dataset.closing = '1';
 
-  // se era il popup "nome personale", aveva agganciato ESC: puliamo
+  // pulizia ESC listener (se presente)
   if (popup._onEsc) {
     document.removeEventListener('keydown', popup._onEsc);
     popup._onEsc = null;
   }
 
-  // stop ingresso + avvia uscita
-  popup.classList.remove('changename-in');
+  // Reduced motion: chiudi subito
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    popup.remove();
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    return;
+  }
 
-  const isSuccess = mode === 'success';
-  popup.classList.add(isSuccess ? 'changename-out-success' : 'changename-out');
-  if (isSuccess) popup.classList.add('changename-success');
-
-  const ms = isSuccess ? 520 : 220;
-
+  // identico a Friends.close()
+  popup.style.animation = 'friendsOut 0.18s ease forwards';
 
   setTimeout(() => {
 
     popup.remove();
     document.body.style.overflow = '';
     document.body.style.paddingRight = '';
-  }, ms);
+  }, 180);
 },
     // Renderizza profilo
     render() {
@@ -700,17 +701,32 @@ changeProtocolName() {
 
   `;
 
-  document.body.appendChild(popup);
+document.body.appendChild(popup);
 
-  document.body.style.overflow = 'hidden';
-  // stesso trigger di Friends.open()
+// lock scroll SENZA shift orizzontale (desktop scrollbar)
+const sbw = window.innerWidth - document.documentElement.clientWidth;
+document.body.style.overflow = 'hidden';
+document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+
+// stesso trigger di Friends.open()
 requestAnimationFrame(() => popup.classList.add('friends-in'));
 
-  setTimeout(() => {
+// chiudi cliccando sul backdrop (fuori dalla card)
+popup.addEventListener('mousedown', (e) => {
+  if (e.target === popup) Profile.closeChangeName();
+});
 
-    document.getElementById('protocol-name-input')?.focus();
+// chiudi con ESC
+const onEsc = (e) => {
+  if (e.key === 'Escape') Profile.closeChangeName();
+};
+popup._onEsc = onEsc;
+document.addEventListener('keydown', onEsc);
 
-  }, 300);
+// Focus input
+setTimeout(() => {
+  document.getElementById('protocol-name-input')?.focus();
+}, 300);
 
 },
 
@@ -780,7 +796,8 @@ if (header) {
 },
 
 closeProtocolName() {
-  this.closeChangeName('normal');
+  this.closeChangeName();
 },
-    
+
+
 };

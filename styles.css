@@ -12224,3 +12224,56 @@ html body #changename-popup[data-closing="1"] > div{
   }
 }
 
+/* =========================================================
+   Rename popups: usa la stessa animazione di Friends
+   Target: #changename-popup + .changename-container
+========================================================= */
+
+@keyframes friendsIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes friendsOut { from { opacity: 1; } to { opacity: 0; } }
+
+@keyframes friendsPanelIn {
+  0%   { transform: scale(0.82); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes friendsPanelOut {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
+}
+
+/* base: non animare finché non arriva friends-in */
+html body #changename-popup {
+  animation: none !important;
+  opacity: 0;
+}
+
+html body #changename-popup.friends-in {
+  animation: friendsIn 0.22s ease both !important;
+  opacity: 1;
+}
+
+html body #changename-popup .changename-container {
+  animation: none !important;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+
+  /* pre-state come Friends */
+  transform: scale(0.82);
+  opacity: 0;
+}
+
+html body #changename-popup.friends-in .changename-container {
+  animation: friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both !important;
+}
+
+/* uscita: JS setta style.animation = friendsOut... (come Friends.close) */
+html body #changename-popup[style*="friendsOut"] {
+  animation: friendsOut 0.18s ease forwards !important;
+}
+
+html body #changename-popup[style*="friendsOut"] .changename-container {
+  animation: friendsPanelOut 0.18s ease forwards !important;
+}
