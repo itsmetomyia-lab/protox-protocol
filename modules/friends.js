@@ -93,6 +93,9 @@ requestAnimationFrame(() => {
 
     this.render();
 
+    this._ensureInviteRealtime();
+    this._ensureCollabRealtime();
+
     const panel = overlay.querySelector('#friends-panel');
 
     const reduced = window.matchMedia &&
@@ -133,6 +136,7 @@ close() {
 
   overlay.style.animation = 'friendsOut 0.18s ease forwards';
   setTimeout(() => {
+    this._teardownCollabRealtime();
     overlay.remove();
     document.body.style.overflow = '';
   }, 180);
@@ -536,7 +540,7 @@ render() {
           <div class="friends-list">
             ${(this._state.friends.length === 0) ? `<div class="friends-subtitle">Nessun amico ancora.</div>` : ``}
             ${this._state.friends.map(f => `
-              <div class="friends-item clickable" onclick="Friends.openFriendActions('${f.id}')">
+              <div class="friends-item clickable" onclick="Friends.openFriendHub('${f.id}')">
                 <div class="friends-left">
                   <div class="friends-name">${f.username || 'Player'}</div>
                   <div class="friends-meta">${f.friend_code || ''}</div>
@@ -787,6 +791,846 @@ async acceptRequest(requestId, fromId) {
       showMessage('Errore annullo', 'negative');
     }
   },
+
+// =====================================================
+// FRIEND HUB (stats + inviti + sfide + eventi) — PREMIUM
+// incolla tra cancelRequest(...) e removeFriend(...)
+// =====================================================
+
+_pairKey(a, b) {
+  const aa = String(a || '');
+  const bb = String(b || '');
+  return (aa < bb) ? `${aa}:${bb}` : `${bb}:${aa}`;
+},
+
+_activityMinutes(type) {
+  if (type === 'coop') return 25;
+  if (type === 'party') return 45;
+  if (type === '1v1') return 5;
+  return 25;
+},
+
+_fmtWhen(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString();
+  } catch (e) { return ''; }
+},
+
+_openPremiumOverlay(cardHtml) {
+  const existing = document.getElementById('friends-confirm-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-confirm-overlay';
+
+  overlay.innerHTML = cardHtml;
+
+  const cleanup = () => {
+    document.removeEventListener('keydown', onKey);
+    overlay.remove();
+  };
+
+  const onKey = (e) => { if (e.key === 'Escape') cleanup(); };
+  document.addEventListener('keydown', onKey);
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
+
+  const host = document.getElementById('friends-overlay') || document.body;
+  host.appendChild(overlay);
+
+  return { overlay, cleanup };
+},
+
+// ----------------------
+// REALTIME: solo refresh UI (no auto-start)
+// ----------------------
+_ensureCollabRealtime() {
+  try {
+    if (this._state._collabRtReady) return;
+    if (!Auth.isLoggedIn()) return;
+
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    this._state._collabRtReady = true;
+
+    if (this._state._collabChannel) {
+      try { client.removeChannel(this._state._collabChannel); } catch (e) {}
+      this._state._collabChannel = null;
+    }
+
+    const ch = client
+      .channel(`friends-collab:${uid}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_invites' }, () => this._onCollabPing())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_events' }, () => this._onCollabPing())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_activities' }, () => this._onCollabPing())
+      .subscribe();
+
+    this._state._collabChannel = ch;
+  } catch (e) {
+    console.warn('_ensureCollabRealtime error:', e);
+  }
+},
+
+_teardownCollabRealtime() {
+  try {
+    const client = Auth.client();
+    if (client && this._state._collabChannel) {
+      client.removeChannel(this._state._collabChannel);
+    }
+  } catch (e) {}
+  this._state._collabChannel = null;
+  this._state._collabRtReady = false;
+},
+
+async _onCollabPing() {
+  // Se l'hub è aperto, ricarica i dati e rerender
+  if (!this._state?.hubFriendId) return;
+  const id = this._state.hubFriendId;
+  await this._loadFriendHubData(id);
+  this._renderFriendHub();
+},
+
+// ----------------------
+// HUB entrypoint
+// ----------------------
+openFriendHub(friendId) {
+  if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
+
+  const f = (this._state.friends || []).find(x => x && x.id === friendId)
+    || { id: friendId, username: 'Player', friend_code: '' };
+
+  this._state.hubFriendId = friendId;
+  this._state.hubFriend = f;
+
+  // placeholder immediato (premium)
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true" style="max-height:82vh; overflow:auto">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">${f.username || 'Player'}</h3>
+      </div>
+      <div class="friends-confirm-body">
+        <div class="friends-subtitle">Loading hub…</div>
+      </div>
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" onclick="document.getElementById('friends-confirm-overlay')?.remove()">CHIUDI</button>
+        <button class="manual-btn" onclick="Friends.openFriendProfile('${friendId}')">STATS</button>
+      </div>
+    </div>
+  `);
+
+  // carica dati e render vero
+  this._loadFriendHubData(friendId).then(() => this._renderFriendHub());
+},
+
+async _loadFriendHubData(friendId) {
+  const client = Auth.client();
+  const uid = Auth.userId();
+  if (!client || !uid) return;
+
+  const pairKey = this._pairKey(uid, friendId);
+
+  const [invInRes, invOutRes, actRes, evRes] = await Promise.all([
+    client.from('friend_invites')
+      .select('id, from_id, to_id, activity_type, created_at, status')
+      .eq('to_id', uid)
+      .eq('from_id', friendId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false }),
+
+    client.from('friend_invites')
+      .select('id, from_id, to_id, activity_type, created_at, status')
+      .eq('from_id', uid)
+      .eq('to_id', friendId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false }),
+
+    client.from('friend_activities')
+      .select('id, activity_type, status, start_at, end_at, created_by, created_at')
+      .eq('pair_key', pairKey)
+      .in('status', ['pending','scheduled'])
+      .order('created_at', { ascending: false }),
+
+    client.from('friend_events')
+      .select('id, from_id, to_id, activity_type, scheduled_for, status, created_at')
+      .eq('pair_key', pairKey)
+      .in('status', ['proposed','accepted'])
+      .order('scheduled_for', { ascending: true }),
+  ]);
+
+  this._state.hubInvIn = invInRes.data || [];
+  this._state.hubInvOut = invOutRes.data || [];
+  this._state.hubActs = actRes.data || [];
+  this._state.hubEvents = evRes.data || [];
+},
+
+_renderFriendHub() {
+  const friendId = this._state?.hubFriendId;
+  const f = this._state?.hubFriend;
+  if (!friendId || !f) return;
+
+  const uid = Auth.userId();
+
+  const invIn = this._state.hubInvIn || [];
+  const invOut = this._state.hubInvOut || [];
+  const acts = this._state.hubActs || [];
+  const events = this._state.hubEvents || [];
+
+  const inviteRows = `
+    ${(invIn.length === 0 && invOut.length === 0) ? `<div class="friends-subtitle">Nessun invito tra voi.</div>` : ``}
+
+    ${invIn.map(i => `
+      <div class="friends-item">
+        <div class="friends-left">
+          <div class="friends-name">INVITO</div>
+          <div class="friends-meta">${i.activity_type.toUpperCase()}</div>
+        </div>
+        <div class="friends-right">
+          <button class="manual-btn" onclick="Friends.acceptInvite('${i.id}')">OK</button>
+          <button class="manual-btn" onclick="Friends.declineInvite('${i.id}')">NO</button>
+        </div>
+      </div>
+    `).join('')}
+
+    ${invOut.map(i => `
+      <div class="friends-item">
+        <div class="friends-left">
+          <div class="friends-name">INVITO INVIATO</div>
+          <div class="friends-meta">${i.activity_type.toUpperCase()}</div>
+        </div>
+        <div class="friends-right">
+          <button class="manual-btn" onclick="Friends.cancelInvite('${i.id}')">ANNULLA</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+
+  const actsRows = `
+    ${(acts.length === 0) ? `<div class="friends-subtitle">Nessuna sfida in corso.</div>` : ``}
+    ${acts.map(a => `
+      <div class="friends-item">
+        <div class="friends-left">
+          <div class="friends-name">${a.activity_type.toUpperCase()}</div>
+          <div class="friends-meta">
+            ${a.status === 'pending' ? 'DA SCHEDULARE' : `START: ${this._fmtWhen(a.start_at)}`}
+          </div>
+        </div>
+        <div class="friends-right">
+          ${a.status === 'pending'
+            ? `<button class="manual-btn" onclick="Friends.openScheduleActivityModal('${a.id}')">SCHEDULA</button>`
+            : `<button class="manual-btn" onclick="Friends.openActivity('${a.id}')">APRI</button>`
+          }
+          <button class="manual-btn" onclick="Friends.cancelActivity('${a.id}')">X</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+
+  const evRows = `
+    ${(events.length === 0) ? `<div class="friends-subtitle">Nessun evento.</div>` : ``}
+    ${events.map(e => {
+      const isReceiver = (e.to_id === uid);
+      const label = `${e.activity_type.toUpperCase()} — ${this._fmtWhen(e.scheduled_for)}`;
+
+      if (e.status === 'proposed') {
+        if (isReceiver) {
+          return `
+            <div class="friends-item">
+              <div class="friends-left">
+                <div class="friends-name">EVENTO PROPOSTO</div>
+                <div class="friends-meta">${label}</div>
+              </div>
+              <div class="friends-right">
+                <button class="manual-btn" onclick="Friends.acceptEvent('${e.id}')">OK</button>
+                <button class="manual-btn" onclick="Friends.declineEvent('${e.id}')">NO</button>
+              </div>
+            </div>
+          `;
+        }
+        return `
+          <div class="friends-item">
+            <div class="friends-left">
+              <div class="friends-name">EVENTO INVIATO</div>
+              <div class="friends-meta">${label}</div>
+            </div>
+            <div class="friends-right">
+              <button class="manual-btn" onclick="Friends.cancelEvent('${e.id}')">ANNULLA</button>
+            </div>
+          </div>
+        `;
+      }
+
+      // accepted
+      return `
+        <div class="friends-item">
+          <div class="friends-left">
+            <div class="friends-name">EVENTO ACCETTATO</div>
+            <div class="friends-meta">${label}</div>
+          </div>
+          <div class="friends-right">
+            <button class="manual-btn" onclick="Friends._loadFriendHubData('${friendId}').then(()=>Friends._renderFriendHub())">REFRESH</button>
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+
+  // Render finale (premium)
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true" style="max-height:82vh; overflow:auto">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">${f.username || 'Player'}</h3>
+      </div>
+
+      <div class="friends-confirm-body">
+        <div class="friends-subtitle">${f.friend_code || ''}</div>
+
+        <div style="display:flex; gap:10px; margin-top:12px">
+          <button class="manual-btn" style="flex:1" onclick="Friends.openFriendProfile('${friendId}')">VEDI STATS</button>
+          <button class="manual-btn" style="flex:1" onclick="Friends.openInviteModal('${friendId}')">INVITA</button>
+          <button class="manual-btn" style="flex:1" onclick="Friends.openEventModal('${friendId}')">EVENTO</button>
+        </div>
+
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header"><h3>INVITI</h3></div>
+          <div class="friends-list">${inviteRows}</div>
+        </div>
+
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header"><h3>SFIDE IN CORSO</h3></div>
+          <div class="friends-list">${actsRows}</div>
+        </div>
+
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header"><h3>EVENTI</h3></div>
+          <div class="friends-list">${evRows}</div>
+        </div>
+      </div>
+
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" onclick="document.getElementById('friends-confirm-overlay')?.remove(); Friends._state.hubFriendId=null;">CHIUDI</button>
+        <button class="manual-btn" onclick="Friends._loadFriendHubData('${friendId}').then(()=>Friends._renderFriendHub())">AGGIORNA</button>
+      </div>
+    </div>
+  `);
+},
+
+// ----------------------
+// INVITI (NON avviano nulla: creano una "sfida pending")
+// ----------------------
+openInviteModal(friendId) {
+  this._state.inviteDraft = { friendId, type: (this._state.inviteDraft?.type || 'coop') };
+
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">INVITA</h3>
+      </div>
+
+      <div class="friends-confirm-body">
+        <div class="friends-subtitle">Scegli modalità:</div>
+
+        <div class="friends-tabs" style="margin-top:10px">
+          <button class="friends-tab ${this._state.inviteDraft.type==='coop'?'active':''}" onclick="Friends.setInviteDraftType('coop')">CO-OP</button>
+          <button class="friends-tab ${this._state.inviteDraft.type==='party'?'active':''}" onclick="Friends.setInviteDraftType('party')">PARTY</button>
+          <button class="friends-tab ${this._state.inviteDraft.type==='1v1'?'active':''}" onclick="Friends.setInviteDraftType('1v1')">1V1</button>
+        </div>
+
+        <div class="friends-subtitle" style="margin-top:10px">
+          Non parte subito: quando accetta, appare in “SFIDE IN CORSO”.
+        </div>
+      </div>
+
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" onclick="Friends.openFriendHub('${friendId}')">BACK</button>
+        <button class="manual-btn" onclick="Friends.sendInvite('${friendId}')">INVIA</button>
+      </div>
+    </div>
+  `);
+},
+
+setInviteDraftType(type) {
+  if (!this._state.inviteDraft) this._state.inviteDraft = {};
+  this._state.inviteDraft.type = type;
+  this.openInviteModal(this._state.inviteDraft.friendId);
+},
+
+async sendInvite(friendId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const type = this._state.inviteDraft?.type || 'coop';
+
+    const { error } = await client.from('friend_invites').insert({
+      from_id: uid,
+      to_id: friendId,
+      activity_type: type,
+      payload: {},
+      status: 'pending'
+    });
+
+    if (error) {
+      if (error.code === '23505') { showMessage('Invito già inviato', 'warning'); return; }
+      showMessage(error.message || 'Errore invito', 'negative');
+      return;
+    }
+
+    showMessage('Invito inviato ✅', 'positive');
+    this.openFriendHub(friendId);
+  } catch (e) {
+    console.error('sendInvite error:', e);
+    showMessage('Errore invito', 'negative');
+  }
+},
+
+async acceptInvite(inviteId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    // 1) prendi invito
+    const { data: inv, error: e1 } = await client
+      .from('friend_invites')
+      .select('id, from_id, to_id, activity_type, status')
+      .eq('id', inviteId)
+      .single();
+
+    if (e1 || !inv) { showMessage('Invito non valido', 'negative'); return; }
+    if (inv.to_id !== uid) { showMessage('Non è un tuo invito', 'negative'); return; }
+    if (inv.status !== 'pending') { showMessage('Invito già gestito', 'warning'); return; }
+
+    // 2) segna accepted
+    const { error: e2 } = await client
+      .from('friend_invites')
+      .update({ status: 'accepted' })
+      .eq('id', inviteId)
+      .eq('to_id', uid)
+      .eq('status', 'pending');
+
+    if (e2) { showMessage(e2.message || 'Errore accept', 'negative'); return; }
+
+    // 3) crea activity PENDING (non parte)
+    const otherId = inv.from_id;
+    const user_a = (uid < otherId) ? uid : otherId;
+    const user_b = (uid < otherId) ? otherId : uid;
+
+    const { error: e3 } = await client.from('friend_activities').insert({
+      user_a,
+      user_b,
+      activity_type: inv.activity_type,
+      status: 'pending',
+      created_by: uid,
+      source_invite_id: inv.id,
+      payload: { origin: 'invite' }
+    });
+
+    if (e3) {
+      // se duplicata, ok: significa che c'era già una pending/scheduled
+      showMessage(e3.message || 'Errore creazione sfida', 'warning');
+    } else {
+      showMessage('Accettato ✅ (sfida aggiunta)', 'positive');
+    }
+
+    this.openFriendHub(otherId);
+  } catch (e) {
+    console.error('acceptInvite error:', e);
+    showMessage('Errore accept', 'negative');
+  }
+},
+
+async declineInvite(inviteId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client
+      .from('friend_invites')
+      .update({ status: 'declined' })
+      .eq('id', inviteId)
+      .eq('to_id', uid)
+      .eq('status', 'pending');
+
+    if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
+    showMessage('Invito rifiutato', 'warning');
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('declineInvite error:', e);
+    showMessage('Errore', 'negative');
+  }
+},
+
+async cancelInvite(inviteId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client
+      .from('friend_invites')
+      .update({ status: 'cancelled' })
+      .eq('id', inviteId)
+      .eq('from_id', uid)
+      .eq('status', 'pending');
+
+    if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
+    showMessage('Invito annullato', 'warning');
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('cancelInvite error:', e);
+    showMessage('Errore', 'negative');
+  }
+},
+
+// ----------------------
+// EVENTI (proposti, poi accettati)
+// ----------------------
+openEventModal(friendId) {
+  this._state.eventDraft = {
+    friendId,
+    type: (this._state.eventDraft?.type || 'coop'),
+    when: (this._state.eventDraft?.when || '')
+  };
+
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">NUOVO EVENTO</h3>
+      </div>
+
+      <div class="friends-confirm-body">
+        <div class="friends-subtitle">Tipo:</div>
+        <div class="friends-tabs" style="margin-top:10px">
+          <button class="friends-tab ${this._state.eventDraft.type==='coop'?'active':''}" onclick="Friends.setEventDraftType('coop')">CO-OP</button>
+          <button class="friends-tab ${this._state.eventDraft.type==='party'?'active':''}" onclick="Friends.setEventDraftType('party')">PARTY</button>
+          <button class="friends-tab ${this._state.eventDraft.type==='1v1'?'active':''}" onclick="Friends.setEventDraftType('1v1')">1V1</button>
+        </div>
+
+        <div class="friends-subtitle" style="margin-top:12px">Quando:</div>
+        <input id="event-when" class="manual-input" type="datetime-local" value="${this._state.eventDraft.when || ''}" />
+
+        <div class="friends-subtitle" style="margin-top:10px">
+          L’altro deve accettare: poi diventa una “SFIDA” schedulata.
+        </div>
+      </div>
+
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" onclick="Friends.openFriendHub('${friendId}')">BACK</button>
+        <button class="manual-btn" onclick="Friends.createEvent('${friendId}')">INVIA</button>
+      </div>
+    </div>
+  `);
+},
+
+setEventDraftType(type) {
+  if (!this._state.eventDraft) this._state.eventDraft = {};
+  this._state.eventDraft.type = type;
+  this.openEventModal(this._state.eventDraft.friendId);
+},
+
+async createEvent(friendId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const when = document.getElementById('event-when')?.value || '';
+    if (!when) { showMessage('Imposta data/ora', 'warning'); return; }
+
+    const scheduled_for = new Date(when).toISOString();
+    const type = this._state.eventDraft?.type || 'coop';
+
+    const { error } = await client.from('friend_events').insert({
+      from_id: uid,
+      to_id: friendId,
+      activity_type: type,
+      scheduled_for,
+      status: 'proposed',
+      payload: {}
+    });
+
+    if (error) { showMessage(error.message || 'Errore evento', 'negative'); return; }
+    showMessage('Evento proposto ✅', 'positive');
+    this.openFriendHub(friendId);
+  } catch (e) {
+    console.error('createEvent error:', e);
+    showMessage('Errore evento', 'negative');
+  }
+},
+
+async acceptEvent(eventId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const { data: ev, error: e0 } = await client
+      .from('friend_events')
+      .select('id, from_id, to_id, activity_type, scheduled_for, status')
+      .eq('id', eventId)
+      .single();
+
+    if (e0 || !ev) { showMessage('Evento non valido', 'negative'); return; }
+    if (ev.to_id !== uid) { showMessage('Non è un tuo evento', 'negative'); return; }
+    if (ev.status !== 'proposed') { showMessage('Evento già gestito', 'warning'); return; }
+
+    const { error: e1 } = await client
+      .from('friend_events')
+      .update({ status: 'accepted' })
+      .eq('id', eventId)
+      .eq('to_id', uid)
+      .eq('status', 'proposed');
+
+    if (e1) { showMessage(e1.message || 'Errore accept', 'negative'); return; }
+
+    // crea activity SCHEDULED
+    const otherId = ev.from_id;
+    const user_a = (uid < otherId) ? uid : otherId;
+    const user_b = (uid < otherId) ? otherId : uid;
+
+    const mins = this._activityMinutes(ev.activity_type);
+    const start_at = ev.scheduled_for;
+    const end_at = new Date(new Date(start_at).getTime() + mins * 60000).toISOString();
+
+    const { error: e2 } = await client.from('friend_activities').insert({
+      user_a,
+      user_b,
+      activity_type: ev.activity_type,
+      status: 'scheduled',
+      start_at,
+      end_at,
+      created_by: uid,
+      source_event_id: ev.id,
+      payload: { origin: 'event' }
+    });
+
+    if (e2) showMessage(e2.message || 'Errore creazione sfida', 'warning');
+    else showMessage('Evento accettato ✅', 'positive');
+
+    this.openFriendHub(otherId);
+  } catch (e) {
+    console.error('acceptEvent error:', e);
+    showMessage('Errore accept evento', 'negative');
+  }
+},
+
+async declineEvent(eventId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client
+      .from('friend_events')
+      .update({ status: 'declined' })
+      .eq('id', eventId)
+      .eq('to_id', uid)
+      .eq('status', 'proposed');
+
+    if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
+    showMessage('Evento rifiutato', 'warning');
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('declineEvent error:', e);
+    showMessage('Errore', 'negative');
+  }
+},
+
+async cancelEvent(eventId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client
+      .from('friend_events')
+      .update({ status: 'cancelled' })
+      .eq('id', eventId)
+      .eq('from_id', uid)
+      .eq('status', 'proposed');
+
+    if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
+    showMessage('Evento annullato', 'warning');
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('cancelEvent error:', e);
+    showMessage('Errore', 'negative');
+  }
+},
+
+// ----------------------
+// SFIDE: schedula / apri / cancella (start MANUALE)
+// ----------------------
+openScheduleActivityModal(activityId) {
+  const friendId = this._state?.hubFriendId;
+  if (!friendId) return;
+
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">SCHEDULA SFIDA</h3>
+      </div>
+
+      <div class="friends-confirm-body">
+        <div class="friends-subtitle">Imposta start:</div>
+        <input id="act-when" class="manual-input" type="datetime-local" />
+        <div class="friends-subtitle" style="margin-top:10px">
+          Non parte da sola: quando arriva l’ora, apri e premi “ENTRA”.
+        </div>
+      </div>
+
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" onclick="Friends.openFriendHub('${friendId}')">BACK</button>
+        <button class="manual-btn" onclick="Friends.scheduleActivity('${activityId}')">SALVA</button>
+      </div>
+    </div>
+  `);
+},
+
+async scheduleActivity(activityId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const when = document.getElementById('act-when')?.value || '';
+    if (!when) { showMessage('Imposta data/ora', 'warning'); return; }
+
+    const { data: row, error: e0 } = await client
+      .from('friend_activities')
+      .select('id, user_a, user_b, activity_type, status')
+      .eq('id', activityId)
+      .single();
+
+    if (e0 || !row) { showMessage('Sfida non valida', 'negative'); return; }
+    if (row.status !== 'pending') { showMessage('Già schedulata', 'warning'); return; }
+
+    const mins = this._activityMinutes(row.activity_type);
+    const start_at = new Date(when).toISOString();
+    const end_at = new Date(new Date(start_at).getTime() + mins * 60000).toISOString();
+
+    const { error } = await client
+      .from('friend_activities')
+      .update({ status: 'scheduled', start_at, end_at })
+      .eq('id', activityId)
+      .in('status', ['pending']);
+
+    if (error) { showMessage(error.message || 'Errore schedula', 'negative'); return; }
+
+    showMessage('Schedulata ✅', 'positive');
+
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('scheduleActivity error:', e);
+    showMessage('Errore schedula', 'negative');
+  }
+},
+
+async cancelActivity(activityId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const { error } = await client
+      .from('friend_activities')
+      .update({ status: 'cancelled' })
+      .eq('id', activityId)
+      .in('status', ['pending','scheduled']);
+
+    if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
+    showMessage('Sfida annullata', 'warning');
+
+    await this._loadFriendHubData(this._state.hubFriendId);
+    this._renderFriendHub();
+  } catch (e) {
+    console.error('cancelActivity error:', e);
+    showMessage('Errore', 'negative');
+  }
+},
+
+async openActivity(activityId) {
+  try {
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) return;
+
+    const { data: a, error: e0 } = await client
+      .from('friend_activities')
+      .select('id, user_a, user_b, activity_type, status, start_at, end_at')
+      .eq('id', activityId)
+      .single();
+
+    if (e0 || !a) { showMessage('Sfida non valida', 'negative'); return; }
+
+    const otherId = (a.user_a === uid) ? a.user_b : a.user_a;
+    const { data: other } = await client
+      .from('profiles')
+      .select('id, username')
+      .eq('id', otherId)
+      .single();
+
+    const otherName = other?.username || 'Player';
+    const mins = this._activityMinutes(a.activity_type);
+
+    const startAt = a.start_at ? new Date(a.start_at).getTime() : null;
+
+    this._openPremiumOverlay(`
+      <div class="friends-confirm-card" role="dialog" aria-modal="true">
+        <div class="friends-confirm-head">
+          <h3 class="friends-confirm-title">${a.activity_type.toUpperCase()}</h3>
+        </div>
+
+        <div class="friends-confirm-body">
+          <div class="friends-subtitle">Con: <b>${otherName}</b></div>
+          <div class="friends-subtitle" style="margin-top:8px">Durata: <b>${mins} min</b></div>
+          <div class="friends-subtitle" style="margin-top:10px">
+            Start: <b id="act-cd">${a.start_at ? this._fmtWhen(a.start_at) : 'NON SCHEDULATA'}</b>
+          </div>
+          <div class="friends-subtitle" style="margin-top:10px; opacity:.9">
+            Non parte da sola: premi “ENTRA” quando vuoi iniziare (meglio insieme).
+          </div>
+        </div>
+
+        <div class="friends-confirm-actions">
+          <button class="manual-btn friends-btn-ghost" onclick="Friends.openFriendHub('${this._state.hubFriendId}')">BACK</button>
+          <button class="manual-btn" id="act-enter" ${(!startAt || Date.now() < startAt) ? 'disabled' : ''}>
+            ENTRA
+          </button>
+        </div>
+      </div>
+    `);
+
+    const btn = document.getElementById('act-enter');
+    if (!btn) return;
+
+    const tick = () => {
+      if (!startAt) return;
+      btn.disabled = Date.now() < startAt;
+    };
+    const t = setInterval(tick, 250);
+    setTimeout(() => clearInterval(t), 120000);
+
+    btn.onclick = () => {
+      // start MANUALE
+      document.getElementById('friends-confirm-overlay')?.remove();
+
+      if (a.activity_type === 'coop') return FocusMode.activate(25);
+      if (a.activity_type === 'party') return FocusMode.activate(45);
+      if (a.activity_type === '1v1') {
+        showMessage('1V1: go grind reps. Refresh score nel tracker.', 'positive');
+        return; // (qui se vuoi ci metti overlay 1v1 avanzato)
+      }
+    };
+  } catch (e) {
+    console.error('openActivity error:', e);
+    showMessage('Errore apertura', 'negative');
+  }
+},
+
 
 async removeFriend(friendId) {
   try {
