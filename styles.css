@@ -12277,3 +12277,52 @@ html body #changename-popup[style*="friendsOut"] {
 html body #changename-popup[style*="friendsOut"] .changename-container {
   animation: friendsPanelOut 0.18s ease forwards !important;
 }
+
+/* =========================================================
+   FRIEND ACTIONS + INVITE MODAL (estensione premium)
+   Si appoggia alle classi già esistenti in styles.css:
+   - #friends-confirm-overlay, .friends-confirm-card, .friends-tab, .friends-list...
+   ========================================================= */
+
+#friends-actions-overlay,
+#friends-invite-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 6700; /* sopra friends overlay (6500) + confirm (6600) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(8, 8, 16, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Card: riusa look della confirm card ma con top-line viola (non rossa) */
+.friends-confirm-card.friends-actions-card::before,
+.friends-confirm-card.friends-invite-card::before{
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.85), transparent) !important;
+  opacity: 0.75 !important;
+}
+
+.friends-actions-actions{
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+/* Bottone primario “Vedi stats / Invia invito” */
+.friends-btn-primary{
+  background: rgba(139,92,246,0.14) !important;
+  border: 1px solid rgba(139,92,246,0.35) !important;
+  color: white !important;
+  box-shadow: 0 0 18px rgba(139,92,246,0.16) !important;
+}
+
+/* “chips” attività: riuso friends-tab, ma in modalità wrap */
+.friends-chip-row{
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

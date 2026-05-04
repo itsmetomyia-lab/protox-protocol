@@ -5,15 +5,23 @@
 // ============================================
 
 const Friends = {
-  _state: {
-    loading: false,
-    view: 'list', // list | friend
-    myProfile: null,
-    friends: [],
-    incoming: [],
-    outgoing: [],
-    friendProfile: null
-  },
+_state: {
+  loading: false,
+  view: 'list', // list | friend
+  myProfile: null,
+
+  friends: [],
+  incoming: [],
+  outgoing: [],
+
+  invitesIncoming: [],
+  invitesOutgoing: [],
+
+  friendProfile: null,
+
+  // UI invite modal
+  inviteActivity: 'party'
+},
 
   // Compat: Profile.render() lo usa già
   getMyId() {
@@ -215,6 +223,24 @@ async refresh() {
     const incoming = incomingRes.data || [];
     const outgoing = outgoingRes.data || [];
 
+    // 2b) inviti (pending)
+const [invInRes, invOutRes] = await Promise.all([
+  client.from('friend_invites')
+    .select('id, from_id, to_id, activity_type, created_at')
+    .eq('to_id', uid)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false }),
+
+  client.from('friend_invites')
+    .select('id, from_id, to_id, activity_type, created_at')
+    .eq('from_id', uid)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+]);
+
+const invIn = invInRes.data || [];
+const invOut = invOutRes.data || [];
+
     // 3) amicizie
     const { data: frRows, error: frErr } = await client
       .from('friendships')
@@ -227,9 +253,17 @@ async refresh() {
     const friendIds = (frRows || []).map(r => (r.user_a === uid ? r.user_b : r.user_a));
     const incomingIds = incoming.map(r => r.from_id);
     const outgoingIds = outgoing.map(r => r.to_id);
+    const invitesIncomingIds = invIn.map(r => r.from_id);
+    const invitesOutgoingIds = invOut.map(r => r.to_id);
 
     const idsToFetch = Array.from(
-      new Set([...friendIds, ...incomingIds, ...outgoingIds].filter(Boolean))
+      new Set([
+  ...friendIds,
+  ...incomingIds,
+  ...outgoingIds,
+  ...invitesIncomingIds,
+  ...invitesOutgoingIds
+].filter(Boolean))
     );
 
     // 4) profili coinvolti
@@ -260,9 +294,25 @@ async refresh() {
       created_at: r.created_at
     }));
 
+    const invitesIncomingUI = invIn.map(r => ({
+  id: r.id,
+  from: profilesById[r.from_id] || { id: r.from_id, username: 'Sconosciuto', friend_code: '—' },
+  activity_type: r.activity_type,
+  created_at: r.created_at
+}));
+
+const invitesOutgoingUI = invOut.map(r => ({
+  id: r.id,
+  to: profilesById[r.to_id] || { id: r.to_id, username: 'Sconosciuto', friend_code: '—' },
+  activity_type: r.activity_type,
+  created_at: r.created_at
+}));
+
     this._state.friends = friends;
     this._state.incoming = incomingUI;
     this._state.outgoing = outgoingUI;
+    this._state.invitesIncoming = invitesIncomingUI;
+    this._state.invitesOutgoing = invitesOutgoingUI;
 
     Storage.save('friends_cache', friends);
   } catch (e) {
@@ -378,6 +428,9 @@ render() {
       <button class="friends-tab ${tab==='incoming'?'active':''}" onclick="Friends.setTab('incoming')">
         RICHIESTE <span class="friends-badge">${this._state.incoming.length}</span>
       </button>
+      <button class="friends-tab ${tab==='invites'?'active':''}" onclick="Friends.setTab('invites')">
+        INVITI <span class="friends-badge">${this._state.invitesIncoming.length}</span>
+      </button>
       <button class="friends-tab ${tab==='add'?'active':''}" onclick="Friends.setTab('add')">
         AGGIUNGI <span class="friends-badge">${this._state.outgoing.length}</span>
       </button>
@@ -409,7 +462,49 @@ render() {
             `).join('')}
           </div>
         </div>
-      ` : tab === 'incoming' ? `
+      ` 
+      
+      
+      : tab === 'invites' ? `
+  <div class="section-card" style="margin-top:12px">
+    <div class="section-card-header">
+      <h3>INVITI</h3>
+    </div>
+
+    <p class="friends-subtitle">IN ARRIVO</p>
+    <div class="friends-list">
+      ${(this._state.invitesIncoming.length === 0) ? `<div class="friends-subtitle">Nessun invito.</div>` : ``}
+      ${this._state.invitesIncoming.map(i => `
+        <div class="friends-item">
+          <div class="friends-left">
+            <div class="friends-name">${i.from.username || 'Player'}</div>
+            <div class="friends-meta">${i.label}</div>
+          </div>
+          <div class="friends-right">
+            <button class="manual-btn" onclick="Friends.acceptInvite('${i.id}')">OK</button>
+            <button class="manual-btn" onclick="Friends.declineInvite('${i.id}')">NO</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <p class="friends-subtitle" style="margin-top:12px">INVIATI</p>
+    <div class="friends-list">
+      ${(this._state.invitesOutgoing.length === 0) ? `<div class="friends-subtitle">Nessun invito inviato.</div>` : ``}
+      ${this._state.invitesOutgoing.map(i => `
+        <div class="friends-item">
+          <div class="friends-left">
+            <div class="friends-name">${i.to.username || 'Player'}</div>
+            <div class="friends-meta">${i.label}</div>
+          </div>
+          <div class="friends-right">
+            <button class="manual-btn" onclick="Friends.cancelInvite('${i.id}')">ANNULLA</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+` : tab === 'incoming' ? `
         <div class="section-card" style="margin-top:12px">
           <div class="section-card-header">
             <h3>RICHIESTE IN ARRIVO</h3>
@@ -431,6 +526,7 @@ render() {
             `).join('')}
           </div>
         </div>
+        
       ` : `
         <div class="section-card" style="margin-top:12px">
           <div class="section-card-header">
@@ -440,7 +536,7 @@ render() {
           <div class="friends-list">
             ${(this._state.friends.length === 0) ? `<div class="friends-subtitle">Nessun amico ancora.</div>` : ``}
             ${this._state.friends.map(f => `
-              <div class="friends-item clickable" onclick="Friends.openFriendProfile('${f.id}')">
+              <div class="friends-item clickable" onclick="Friends.openFriendActions('${f.id}')">
                 <div class="friends-left">
                   <div class="friends-name">${f.username || 'Player'}</div>
                   <div class="friends-meta">${f.friend_code || ''}</div>
@@ -763,5 +859,194 @@ async removeFriend(friendId) {
       console.error('openFriendProfile error:', e);
       showMessage('Errore profilo amico', 'negative');
     }
+  },
+
+  _inviteLabel(type){
+  if (type === 'party') return 'Invito: Party';
+  if (type === 'coop') return 'Invito: Co-op';
+  if (type === '1v1') return 'Invito: 1v1';
+  return `Invito: ${type}`;
+},
+
+_closeMiniOverlays(){
+  document.getElementById('friends-actions-overlay')?.remove();
+  document.getElementById('friends-invite-overlay')?.remove();
+},
+
+openFriendActions(friendId){
+  this._closeMiniOverlays();
+
+  const f = (this._state.friends || []).find(x => x && x.id === friendId)
+    || { id: friendId, username: 'Player', friend_code: '' };
+
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-actions-overlay';
+
+  overlay.innerHTML = `
+    <div class="friends-confirm-card friends-actions-card">
+      <h3 class="friends-confirm-title">AZIONI</h3>
+      <div class="friends-confirm-body">
+        <div class="friends-name" style="margin-top:6px">${f.username || 'Player'}</div>
+        <div class="friends-meta">${f.friend_code || ''}</div>
+      </div>
+
+      <div class="friends-actions-actions">
+        <button class="manual-btn friends-btn-primary" id="friends-actions-stats">VEDI STATS</button>
+        <button class="manual-btn friends-btn-ghost" id="friends-actions-invite">INVITA</button>
+      </div>
+    </div>
+  `;
+
+  const cleanup = () => overlay.remove();
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
+  document.addEventListener('keydown', function onKey(e){
+    if (e.key === 'Escape'){
+      document.removeEventListener('keydown', onKey);
+      cleanup();
+    }
+  });
+
+  const host = document.getElementById('friends-overlay') || document.body;
+  host.appendChild(overlay);
+
+  overlay.querySelector('#friends-actions-stats').onclick = () => {
+    cleanup();
+    Friends.openFriendProfile(friendId); // funzione già esistente
+  };
+
+  overlay.querySelector('#friends-actions-invite').onclick = () => {
+    cleanup();
+    Friends.openInviteModal(friendId);
+  };
+},
+
+openInviteModal(friendId){
+  this._closeMiniOverlays();
+  this._state.inviteActivity = this._state.inviteActivity || 'party';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-invite-overlay';
+
+  const render = () => {
+    overlay.innerHTML = `
+      <div class="friends-confirm-card friends-invite-card">
+        <h3 class="friends-confirm-title">INVITA A…</h3>
+        <div class="friends-confirm-body">
+          Seleziona cosa fare insieme:
+        </div>
+
+        <div class="friends-chip-row">
+          <button class="friends-tab ${this._state.inviteActivity==='party'?'active':''}" onclick="Friends.setInviteActivity('party')">PARTY</button>
+          <button class="friends-tab ${this._state.inviteActivity==='coop'?'active':''}" onclick="Friends.setInviteActivity('coop')">CO-OP</button>
+          <button class="friends-tab ${this._state.inviteActivity==='1v1'?'active':''}" onclick="Friends.setInviteActivity('1v1')">1V1</button>
+        </div>
+
+        <div class="friends-actions-actions">
+          <button class="manual-btn friends-btn-primary" onclick="Friends.sendInvite('${friendId}')">INVIA INVITO</button>
+          <button class="manual-btn friends-btn-ghost" onclick="Friends._closeMiniOverlays()">ANNULLA</button>
+        </div>
+      </div>
+    `;
+  };
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  const host = document.getElementById('friends-overlay') || document.body;
+  host.appendChild(overlay);
+
+  this._inviteModalRerender = render;
+  render();
+},
+
+setInviteActivity(type){
+  this._state.inviteActivity = type;
+  this._inviteModalRerender?.();
+},
+
+async sendInvite(friendId){
+  try{
+    if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
+    const client = Auth.client();
+    const uid = Auth.userId();
+    if (!client || !uid) { showMessage('Sessione non valida', 'negative'); return; }
+
+    const activity = this._state.inviteActivity || 'party';
+
+    const { error } = await client.from('friend_invites').insert({
+      from_id: uid,
+      to_id: friendId,
+      activity_type: activity,
+      payload: {},
+      status: 'pending'
+    });
+
+    if (error){
+      if (error.code === '23505') { showMessage('Invito già inviato', 'warning'); return; }
+      showMessage(error.message || 'Errore invio invito', 'negative');
+      return;
+    }
+
+    showMessage('Invito inviato ✅', 'positive');
+    this._closeMiniOverlays();
+    this.refresh();
+  } catch(e){
+    console.error('sendInvite error:', e);
+    showMessage('Errore invio invito', 'negative');
   }
+},
+
+async acceptInvite(inviteId){
+  try{
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client.from('friend_invites')
+      .update({ status: 'accepted' })
+      .eq('id', inviteId)
+      .eq('to_id', uid);
+
+    if (error){ showMessage(error.message, 'negative'); return; }
+    showMessage('Invito accettato ✅', 'positive');
+    this.refresh();
+  } catch(e){
+    console.error('acceptInvite error:', e);
+    showMessage('Errore accettazione invito', 'negative');
+  }
+},
+
+async declineInvite(inviteId){
+  try{
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client.from('friend_invites')
+      .update({ status: 'declined' })
+      .eq('id', inviteId)
+      .eq('to_id', uid);
+
+    if (error){ showMessage(error.message, 'negative'); return; }
+    showMessage('Invito rifiutato', 'warning');
+    this.refresh();
+  } catch(e){
+    console.error('declineInvite error:', e);
+    showMessage('Errore rifiuto invito', 'negative');
+  }
+},
+
+async cancelInvite(inviteId){
+  try{
+    const client = Auth.client();
+    const uid = Auth.userId();
+    const { error } = await client.from('friend_invites')
+      .update({ status: 'cancelled' })
+      .eq('id', inviteId)
+      .eq('from_id', uid);
+
+    if (error){ showMessage(error.message, 'negative'); return; }
+    showMessage('Invito annullato', 'warning');
+    this.refresh();
+  } catch(e){
+    console.error('cancelInvite error:', e);
+    showMessage('Errore annullo invito', 'negative');
+  }
+},
 };
