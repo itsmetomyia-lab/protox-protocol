@@ -56,6 +56,7 @@ const Navigation = {
                     updateUI(player);
                     checkTodayActions();
                     if (typeof XPMultiplier !== 'undefined') XPMultiplier.render();
+                    if (typeof CustomActions !== 'undefined') CustomActions.renderHome();
                 } catch(e) { console.error('Home error:', e); }
                 break;
 
@@ -84,15 +85,7 @@ const Navigation = {
                     if (typeof Profile !== 'undefined') Profile.render();
                 } catch(e) { console.error('Profile error:', e); }
                 break;
-
-            case 'home':
-                const player = loadPlayer();
-                updateUI(player);
-                checkTodayActions();
-                if (typeof XPMultiplier !== 'undefined') XPMultiplier.render();
-                if (typeof CustomActions !== 'undefined') CustomActions.renderActions();
-                break;  
-                
+               
             case 'feedback':
                 if (typeof Feedback !== 'undefined') Feedback.render();
                 break;

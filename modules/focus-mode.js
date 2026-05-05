@@ -30,6 +30,7 @@ activate(minutes = 25) {
 
   const overlay = document.createElement('div');
   overlay.id = 'focus-overlay';
+  overlay.classList.add('no-shades');
 
   overlay.innerHTML = `
     <div class="focus-container">
@@ -200,6 +201,7 @@ confirmPopup({ title = 'CONFERMA', message = '', okText = 'OK', cancelText = 'AN
 
     const overlay = document.createElement('div');
     overlay.id = 'focus-confirm-overlay';
+    overlay.classList.add('no-shades');
 
     overlay.style.cssText = `
       position:fixed; inset:0; z-index:2100;

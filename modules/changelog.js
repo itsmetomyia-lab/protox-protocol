@@ -135,6 +135,7 @@ const Changelog = {
 
         const popup = document.createElement('div');
         popup.id = 'changelog-popup';
+        popup.classList.add('no-shades');
         popup.innerHTML = `
             <div class="changelog-popup-container">
                 <div class="changelog-popup-header">

@@ -500,7 +500,7 @@ closeChangeName() {
                 </div>
             </div>
 
-            <div class="profile-section">
+            <div class="profile-section no-shades">
                 <div class="profile-section-header">
                     <h3>📋 CHANGELOG</h3>
                     <span class="changelog-version-current">v${typeof Changelog !== 'undefined' ? Changelog.getLatestVersion() : '1.0.0'}</span>

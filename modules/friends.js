@@ -298,10 +298,11 @@ const invOut = invOutRes.data || [];
       created_at: r.created_at
     }));
 
-    const invitesIncomingUI = invIn.map(r => ({
+const invitesIncomingUI = invIn.map(r => ({
   id: r.id,
   from: profilesById[r.from_id] || { id: r.from_id, username: 'Sconosciuto', friend_code: '—' },
   activity_type: r.activity_type,
+  label: this._inviteLabel(r.activity_type),
   created_at: r.created_at
 }));
 
@@ -309,6 +310,7 @@ const invitesOutgoingUI = invOut.map(r => ({
   id: r.id,
   to: profilesById[r.to_id] || { id: r.to_id, username: 'Sconosciuto', friend_code: '—' },
   activity_type: r.activity_type,
+  label: this._inviteLabel(r.activity_type),
   created_at: r.created_at
 }));
 
@@ -843,9 +845,57 @@ _openPremiumOverlay(cardHtml) {
   return { overlay, cleanup };
 },
 
+
+_openStackOverlay({ id = 'friends-stack-overlay', cardHtml = '' } = {}) {
+
+  const existing = document.getElementById(id);
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = id;
+
+  // overlay vero sopra tutto (premium stack)
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0,0,0,0.58);
+    backdrop-filter: blur(10px);
+  `;
+
+  overlay.innerHTML = cardHtml;
+
+  const cleanup = () => {
+    document.removeEventListener('keydown', onKey);
+    overlay.remove();
+  };
+
+  const onKey = (e) => { if (e.key === 'Escape') cleanup(); };
+
+  document.addEventListener('keydown', onKey);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
+
+  const host = document.getElementById('friends-overlay') || document.body;
+  host.appendChild(overlay);
+
+  return { overlay, cleanup };
+},
+
 // ----------------------
 // REALTIME: solo refresh UI (no auto-start)
 // ----------------------
+
+
+_ensureInviteRealtime() {
+  // legacy hook: ormai gestiamo tutto qui
+  return this._ensureCollabRealtime();
+},
+
+
 _ensureCollabRealtime() {
   try {
     if (this._state._collabRtReady) return;
@@ -917,13 +967,120 @@ openFriendHub(friendId) {
       </div>
       <div class="friends-confirm-actions">
         <button class="manual-btn friends-btn-ghost" onclick="document.getElementById('friends-confirm-overlay')?.remove()">CHIUDI</button>
-        <button class="manual-btn" onclick="Friends.openFriendProfile('${friendId}')">STATS</button>
+        <button class="manual-btn" onclick="Friends.openFriendHubStats('${friendId}')">STATS</button>
       </div>
     </div>
   `);
 
   // carica dati e render vero
   this._loadFriendHubData(friendId).then(() => this._renderFriendHub());
+},
+
+
+async openFriendHubStats(friendId) {
+
+  try {
+
+    if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
+
+    const fid = friendId || this._state?.hubFriendId;
+    if (!fid) { showMessage('Friend id non valido', 'negative'); return; }
+
+    // “lite” (se c’è già in hub state, usalo)
+    const lite =
+      (this._state?.hubFriendId === fid && this._state?.hubFriend)
+        ? this._state.hubFriend
+        : (this._state.friends || []).find(x => x && x.id === fid) || { id: fid, username: 'Player', friend_code: '' };
+
+    const { overlay, cleanup } = this._openStackOverlay({
+      id: 'friends-hub-stats-overlay',
+      cardHtml: `
+        <div class="friends-confirm-card" role="dialog" aria-modal="true" style="max-height:82vh; overflow:auto">
+          <div class="friends-confirm-head">
+            <h3 class="friends-confirm-title">STATS</h3>
+          </div>
+
+          <div class="friends-confirm-body" id="friends-hub-stats-body">
+            <div class="friends-subtitle">Loading stats…</div>
+          </div>
+
+          <div class="friends-confirm-actions">
+            <button class="manual-btn friends-btn-ghost" id="friends-hub-stats-back">BACK</button>
+            <button class="manual-btn" id="friends-hub-stats-close">CHIUDI</button>
+          </div>
+        </div>
+      `
+    });
+
+    // BACK = torna all’hub dietro (istantaneo)
+    overlay.querySelector('#friends-hub-stats-back').onclick = () => cleanup();
+    overlay.querySelector('#friends-hub-stats-close').onclick = () => cleanup();
+
+    const body = overlay.querySelector('#friends-hub-stats-body');
+
+    const client = Auth.client();
+    if (!client) { showMessage('Client non pronto', 'negative'); cleanup(); return; }
+
+    const { data: p, error } = await client
+      .from('profiles')
+      .select('id, username, friend_code, level, xp, reps, streak')
+      .eq('id', fid)
+      .single();
+
+    if (error || !p) {
+      console.error('openFriendHubStats error:', error);
+      showMessage(error?.message || 'Stats non disponibili', 'warning');
+      if (body) body.innerHTML = `<div class="friends-subtitle">Stats non disponibili.</div>`;
+      return;
+    }
+
+    const username = p.username || lite.username || 'Player';
+    const code = p.friend_code || lite.friend_code || '';
+
+    const level = (p.level ?? 1);
+    const streak = (p.streak ?? 0);
+    const xp = (p.xp ?? 0);
+    const reps = (p.reps ?? 0);
+
+    if (body) body.innerHTML = `
+      <div class="friends-name">${username}</div>
+      <div class="friends-meta">${code}</div>
+
+      <div style="height:12px"></div>
+
+      <div class="friends-subtitle">Solo numeri. Zero scuse.</div>
+
+      <div style="height:12px"></div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="stat-block">
+          <span class="stat-label">LEVEL</span>
+          <span class="stat-value">${level}</span>
+        </div>
+
+        <div class="stat-block">
+          <span class="stat-label">STREAK</span>
+          <span class="stat-value">${streak}</span>
+        </div>
+
+        <div class="stat-block" style="grid-column: 1 / -1;">
+          <span class="stat-label">XP</span>
+          <span class="stat-value">${Number(xp).toLocaleString()}</span>
+        </div>
+
+        <div class="stat-block" style="grid-column: 1 / -1;">
+          <span class="stat-label">REPS</span>
+          <span class="stat-value">${Number(reps).toLocaleString()}</span>
+        </div>
+      </div>
+    `;
+
+  } catch (e) {
+
+    console.error('openFriendHubStats fatal:', e);
+    showMessage('Errore stats', 'negative');
+
+  }
 },
 
 async _loadFriendHubData(friendId) {
@@ -1140,7 +1297,7 @@ openInviteModal(friendId) {
         </div>
 
         <div class="friends-subtitle" style="margin-top:10px">
-          Non parte subito: quando accetta, appare in “SFIDE IN CORSO”.
+         Non parte subito: quando accetta, finisce in “SFIDE IN CORSO”. (CO-OP 25m · PARTY 45m · 1V1 5m)
         </div>
       </div>
 
@@ -1257,8 +1414,12 @@ async declineInvite(inviteId) {
 
     if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
     showMessage('Invito rifiutato', 'warning');
-    await this._loadFriendHubData(this._state.hubFriendId);
-    this._renderFriendHub();
+if (this._state?.hubFriendId) {
+  await this._loadFriendHubData(this._state.hubFriendId);
+  this._renderFriendHub();
+} else {
+  this.refresh();
+}
   } catch (e) {
     console.error('declineInvite error:', e);
     showMessage('Errore', 'negative');
@@ -1278,8 +1439,12 @@ async cancelInvite(inviteId) {
 
     if (error) { showMessage(error.message || 'Errore', 'negative'); return; }
     showMessage('Invito annullato', 'warning');
-    await this._loadFriendHubData(this._state.hubFriendId);
-    this._renderFriendHub();
+if (this._state?.hubFriendId) {
+  await this._loadFriendHubData(this._state.hubFriendId);
+  this._renderFriendHub();
+} else {
+  this.refresh();
+}
   } catch (e) {
     console.error('cancelInvite error:', e);
     showMessage('Errore', 'negative');
@@ -1604,27 +1769,24 @@ async openActivity(activityId) {
       </div>
     `);
 
-    const btn = document.getElementById('act-enter');
-    if (!btn) return;
+const btn = document.getElementById('act-enter');
+if (!btn) return;
 
-    const tick = () => {
-      if (!startAt) return;
-      btn.disabled = Date.now() < startAt;
-    };
-    const t = setInterval(tick, 250);
-    setTimeout(() => clearInterval(t), 120000);
+// niente disabled “muto”: se sei in anticipo -> WAITLIST con countdown
+btn.disabled = false;
 
-    btn.onclick = () => {
-      // start MANUALE
-      document.getElementById('friends-confirm-overlay')?.remove();
+btn.onclick = () => {
+  if (startAt && Date.now() < startAt) {
+    return this._openWaitlistOverlay({
+      activity: a,
+      otherName,
+      mins,
+      startAt: a.start_at
+    });
+  }
 
-      if (a.activity_type === 'coop') return FocusMode.activate(25);
-      if (a.activity_type === 'party') return FocusMode.activate(45);
-      if (a.activity_type === '1v1') {
-        showMessage('1V1: go grind reps. Refresh score nel tracker.', 'positive');
-        return; // (qui se vuoi ci metti overlay 1v1 avanzato)
-      }
-    };
+  return this._startActivityNow(a);
+};
   } catch (e) {
     console.error('openActivity error:', e);
     showMessage('Errore apertura', 'negative');
@@ -1684,6 +1846,7 @@ async removeFriend(friendId) {
 
   async openFriendProfile(friendId) {
     try {
+      document.getElementById('friends-confirm-overlay')?.remove();
       const client = Auth.client();
       const { data, error } = await client
         .from('profiles')
@@ -1712,58 +1875,7 @@ async removeFriend(friendId) {
   return `Invito: ${type}`;
 },
 
-_closeMiniOverlays(){
-  document.getElementById('friends-actions-overlay')?.remove();
-  document.getElementById('friends-invite-overlay')?.remove();
-},
 
-openFriendActions(friendId){
-  this._closeMiniOverlays();
-
-  const f = (this._state.friends || []).find(x => x && x.id === friendId)
-    || { id: friendId, username: 'Player', friend_code: '' };
-
-  const overlay = document.createElement('div');
-  overlay.id = 'friends-actions-overlay';
-
-  overlay.innerHTML = `
-    <div class="friends-confirm-card friends-actions-card">
-      <h3 class="friends-confirm-title">AZIONI</h3>
-      <div class="friends-confirm-body">
-        <div class="friends-name" style="margin-top:6px">${f.username || 'Player'}</div>
-        <div class="friends-meta">${f.friend_code || ''}</div>
-      </div>
-
-      <div class="friends-actions-actions">
-        <button class="manual-btn friends-btn-primary" id="friends-actions-stats">VEDI STATS</button>
-        <button class="manual-btn friends-btn-ghost" id="friends-actions-invite">INVITA</button>
-      </div>
-    </div>
-  `;
-
-  const cleanup = () => overlay.remove();
-
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
-  document.addEventListener('keydown', function onKey(e){
-    if (e.key === 'Escape'){
-      document.removeEventListener('keydown', onKey);
-      cleanup();
-    }
-  });
-
-  const host = document.getElementById('friends-overlay') || document.body;
-  host.appendChild(overlay);
-
-  overlay.querySelector('#friends-actions-stats').onclick = () => {
-    cleanup();
-    Friends.openFriendProfile(friendId); // funzione già esistente
-  };
-
-  overlay.querySelector('#friends-actions-invite').onclick = () => {
-    cleanup();
-    Friends.openInviteModal(friendId);
-  };
-},
 
 openInviteModal(friendId){
   this._closeMiniOverlays();
@@ -1893,4 +2005,93 @@ async cancelInvite(inviteId){
     showMessage('Errore annullo invito', 'negative');
   }
 },
+
+_startActivityNow(activity) {
+  // chiudi overlay dettaglio/waitlist
+  document.getElementById('friends-confirm-overlay')?.remove();
+
+  // start MANUALE
+  if (activity.activity_type === 'coop') return FocusMode.activate(25);
+  if (activity.activity_type === 'party') return FocusMode.activate(45);
+
+  if (activity.activity_type === '1v1') {
+    showMessage('1V1: go grind reps. Refresh score nel tracker.', 'positive');
+    return;
+  }
+},
+
+_openWaitlistOverlay({ activity, otherName = 'Player', mins = 0, startAt }) {
+  const startAtMs = startAt ? new Date(startAt).getTime() : null;
+
+  this._openPremiumOverlay(`
+    <div class="friends-confirm-card" role="dialog" aria-modal="true">
+      <div class="friends-confirm-head">
+        <h3 class="friends-confirm-title">WAITLIST</h3>
+      </div>
+
+      <div class="friends-confirm-body">
+        <div class="friends-name">${String(activity.activity_type || '').toUpperCase()}</div>
+        <div class="friends-meta">Con: ${otherName}</div>
+
+        <div style="height:12px"></div>
+
+        <div class="friends-meta">PARTENZA TRA</div>
+        <div id="friends-wait-countdown"
+             style="font-family:'Orbitron',sans-serif;font-size:2.1rem;font-weight:900;letter-spacing:2px;color:white">
+          --:--
+        </div>
+
+        <div class="friends-subtitle" style="margin-top:10px">
+          Se arrivi presto: aspetti qui. Quando va a zero: ENTRA.
+        </div>
+      </div>
+
+      <div class="friends-confirm-actions">
+        <button class="manual-btn friends-btn-ghost" id="friends-wait-back">BACK</button>
+        <button class="manual-btn" id="friends-wait-enter" disabled>ENTRA</button>
+      </div>
+    </div>
+  `);
+
+  const back = document.getElementById('friends-wait-back');
+  const enter = document.getElementById('friends-wait-enter');
+  const out = document.getElementById('friends-wait-countdown');
+
+  if (back) back.onclick = () => this.openActivity(activity.id);
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (ms) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return (h > 0) ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+  };
+
+  const tick = () => {
+    if (!out || !enter || !startAtMs) return;
+    const left = startAtMs - Date.now();
+    out.textContent = (left > 0) ? fmt(left) : '00:00';
+    enter.disabled = left > 0;
+    if (left <= 0) enter.textContent = 'ENTRA ORA';
+  };
+
+  const t = setInterval(() => {
+    // stop automatico se overlay non esiste più
+    if (!document.getElementById('friends-confirm-overlay') || !document.getElementById('friends-wait-countdown')) {
+      clearInterval(t);
+      return;
+    }
+    tick();
+  }, 250);
+
+  tick();
+
+  if (enter) enter.onclick = () => {
+    if (startAtMs && Date.now() < startAtMs) return;
+    clearInterval(t);
+    this._startActivityNow(activity);
+  };
+},
+
 };

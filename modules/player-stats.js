@@ -449,31 +449,64 @@ function openColorPicker() {
 
 // ---- THEME SYSTEM ----
 function setTheme(theme) {
-    // Rimuovi tutti i temi
-    document.body.classList.remove(
-        'theme-red', 'theme-blue', 'theme-green', 'theme-gold', 'theme-custom'
-    );
 
-    // Rimuovi custom properties
-    document.documentElement.style.removeProperty('--purple-main');
-    document.documentElement.style.removeProperty('--purple-dark');
-    document.documentElement.style.removeProperty('--purple-glow');
-    document.documentElement.style.removeProperty('--border');
-    document.documentElement.style.removeProperty('--green-xp');
+  const palette = {
+    purple: '#8b5cf6',
+    red: '#ef4444',
+    blue: '#3b82f6',
+    green: '#10b981',
+    gold: '#f59e0b'
+  };
 
-    if (theme !== 'purple') {
-        document.body.classList.add('theme-' + theme);
-    }
+  const hex = palette[theme] || palette.purple;
 
-    // Aggiorna bottoni attivi
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    const activeBtn = document.getElementById('theme-' + theme);
-    if (activeBtn) activeBtn.classList.add('active');
+  // reset classi (le lasciamo per compat, ma la verità sono le CSS vars)
+  document.body.classList.remove('theme-red','theme-blue','theme-green','theme-gold','theme-custom');
 
-    Storage.save('theme', theme);
-    Storage.save('customColor', null);
+  // calcola varianti
+  const dark = adjustColor(hex, -30);
+  const glow = hexToRGBA(hex, 0.40);
+  const border = hexToRGBA(hex, 0.20);
+
+  const repsColor = adjustColor(hex, 20);
+
+  // soft layers per UI (niente verde morto)
+  const soft = hexToRGBA(hex, 0.06);
+  const soft2 = hexToRGBA(hex, 0.12);
+  const borderStrong = hexToRGBA(hex, 0.45);
+
+  // applica vars
+  document.documentElement.style.setProperty('--purple-main', hex);
+  document.documentElement.style.setProperty('--purple-dark', dark);
+  document.documentElement.style.setProperty('--purple-glow', glow);
+  document.documentElement.style.setProperty('--border', border);
+
+  // “green-xp” diventa semplicemente accent-lite (non verde)
+  document.documentElement.style.setProperty('--green-xp', repsColor);
+
+  // extra vars (usate per eliminare hardcode verde nei background)
+  document.documentElement.style.setProperty('--accent-soft', soft);
+  document.documentElement.style.setProperty('--accent-soft2', soft2);
+  document.documentElement.style.setProperty('--accent-border-strong', borderStrong);
+
+  // background coerente col tema
+  document.body.style.backgroundImage = `
+    radial-gradient(ellipse at top, ${hexToRGBA(hex, 0.15)} 0%, transparent 60%),
+    radial-gradient(ellipse at bottom, ${hexToRGBA(repsColor, 0.05)} 0%, transparent 60%)
+  `;
+
+  // Aggiorna bottoni attivi
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('theme-' + theme);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  Storage.save('theme', theme);
+  Storage.save('customColor', null);
+
+  // IMPORTANT: se SHADES è attivo, ricalcola subito le shade vars
+  if (typeof DarkLight !== 'undefined' && typeof DarkLight.onThemeChange === 'function') {
+    DarkLight.onThemeChange();
+  }
 }
 
 function applyCustomColor(hex) {
@@ -495,6 +528,10 @@ function applyCustomColor(hex) {
     document.documentElement.style.setProperty('--purple-glow', glow);
     document.documentElement.style.setProperty('--border', border);
     document.documentElement.style.setProperty('--green-xp', repsColor);
+    // extra vars “premium”
+    document.documentElement.style.setProperty('--accent-soft', hexToRGBA(hex, 0.06));
+    document.documentElement.style.setProperty('--accent-soft2', hexToRGBA(hex, 0.12));
+    document.documentElement.style.setProperty('--accent-border-strong', hexToRGBA(hex, 0.45));
 
     // Aggiorna background
     document.body.style.backgroundImage = `
@@ -604,7 +641,7 @@ window.onload = function() {
 
         // Render azioni
     if (typeof CustomActions !== 'undefined') {
-        CustomActions.renderActions();
+        CustomActions.renderHome();
     }
     // UI
     updateUI(player);

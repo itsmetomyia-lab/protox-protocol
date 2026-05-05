@@ -30,7 +30,7 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="friends-invites.css" />
+    <!-- friends-invites.css era referenziato ma non presente in repo -->
     
   </head>
   <body>
@@ -47,7 +47,7 @@
             id="darklight-icon"
             onclick="DarkLight.toggle()"
           >
-            ☀️
+           ◻️
           </button>
           <button class="icon-btn" onclick="Navigation.goTo('profile')">
             ⚙️
@@ -169,99 +169,30 @@
           <div id="protox-stats"></div>
         </div>
 
-        <!-- AZIONI -->
-        <div id="actions-section">
-          <!-- SEARCH BAR + ADD BUTTON -->
-          <div id="actions-toolbar">
-            <div class="search-container">
-              <span class="search-icon">🔍</span>
-              <input
-                type="text"
-                id="action-search"
-                class="search-input"
-                placeholder="Cerca azione..."
-                oninput="CustomActions.onSearch(this.value)"
-                autocomplete="off"
-              />
-              <button
-                class="search-clear hidden"
-                id="search-clear"
-                onclick="CustomActions.clearSearch()"
-              >
-                ✕
-              </button>
-            </div>
-            <button
-              class="toggle-actions-btn"
-              id="toggle-actions-btn"
-              onclick="CustomActions.toggleVisibility()"
-            >
-              <span id="toggle-icon">↓</span>
-            </button>
-            <button
-              class="add-action-btn"
-              onclick="CustomActions.showCreatePopup()"
-            >
-              <span>+</span>
-            </button>
-          </div>
+<!-- AZIONI (SUPER PREMIUM) -->
+<div id="actions-section">
 
-          <!-- FILTRI -->
-          <div id="action-filters">
-            <button
-              class="filter-btn active"
-              data-filter="all"
-              onclick="CustomActions.setFilter('all')"
-            >
-              Tutte
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="positive"
-              onclick="CustomActions.setFilter('positive')"
-            >
-              ✅ Positive
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="negative"
-              onclick="CustomActions.setFilter('negative')"
-            >
-              ❌ Negative
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="body"
-              onclick="CustomActions.setFilter('body')"
-            >
-              💪
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="mind"
-              onclick="CustomActions.setFilter('mind')"
-            >
-              🧠
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="will"
-              onclick="CustomActions.setFilter('will')"
-            >
-              🔥
-            </button>
-            <button
-              class="filter-btn"
-              data-filter="soul"
-              onclick="CustomActions.setFilter('soul')"
-            >
-              ✨
-            </button>
-          </div>
+  <div class="actions-premium-head">
+    <div class="actions-premium-title">
+      <h2>AZIONI</h2>
+      <div class="actions-premium-sub">XP rapido. Zero scroll infinito.</div>
+    </div>
 
-          <!-- LISTA AZIONI -->
-          <div id="actions-list"></div>
-        </div>
+    <div class="actions-premium-ctas">
+      <button class="manual-btn actions-ghost" onclick="CustomActions.openHub('all')">ALL</button>
+      <button class="manual-btn" onclick="CustomActions.showCreatePopup()">NEW</button>
+    </div>
+  </div>
+
+  <!-- QUICK DECK -->
+  <div id="actions-quick" class="actions-quick-grid"></div>
+
+  <div class="actions-premium-footer">
+    <button class="manual-btn actions-ghost" onclick="CustomActions.openHub('negative')">PENALITÀ</button>
+    <button class="manual-btn actions-ghost" onclick="CustomActions.openHub('custom')">CUSTOM</button>
+  </div>
+
+</div>
 
         <!-- PLANNER BUTTON -->
         <div id="planner-button-section">
@@ -308,7 +239,7 @@
       <!-- ============================================
          PAGINA TIMER
          ============================================ -->
-      <div class="page page-hidden" id="page-timer">
+      <div class="page page-hidden no-shades" id="page-timer">
         <div class="page-header">
           <h2>⏱️ TIMER</h2>
           <p class="page-subtitle">Sessioni di allenamento</p>
