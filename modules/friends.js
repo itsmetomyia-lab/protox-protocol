@@ -165,10 +165,14 @@ setTab(tab) {
 async refresh() {
   // evita refresh sovrapposti che possono lasciare loading appeso
   if (this._state.refreshBusy) return;
-  this._state.refreshBusy = true;
+this._state.refreshBusy = true;
 
-  this._state.loading = true;
-  this.render();
+const keepFocus = this._isAddInputFocused();
+
+this._state.loading = true;
+
+if (!keepFocus) this.render();
+else this._state._deferredRender = true;
 
   // safety: se qualcosa resta appeso (mobile/cambio rete), sblocca comunque UI
   const safety = setTimeout(() => {
@@ -325,10 +329,16 @@ const invitesOutgoingUI = invOut.map(r => ({
     console.error('Friends.refresh error:', e);
     if (typeof showMessage !== 'undefined') showMessage('Sync error (controlla rete)', 'warning');
   } finally {
-    clearTimeout(safety);
-    this._state.loading = false;
-    this._state.refreshBusy = false;
-    this.render();
+clearTimeout(safety);
+
+this._state.loading = false;
+this._state.refreshBusy = false;
+
+if (this._isAddInputFocused()) {
+  this._state._deferredRender = true;
+} else {
+  this.render();
+}
   }
 },
 
@@ -449,8 +459,23 @@ render() {
             <h3>INVIA RICHIESTA</h3>
           </div>
           <div style="display:flex; gap:10px; align-items:center">
-            <input id="friend-id-input" class="manual-input" placeholder="PX-........" autocomplete="off" style="flex:1; margin:0"/>
-            <button class="manual-btn" onclick="Friends.sendRequest()">INVIA</button>
+<input
+  id="friend-id-input"
+  class="manual-input"
+  placeholder="PX-........"
+  autocomplete="off"
+  autocapitalize="characters"
+  autocorrect="off"
+  spellcheck="false"
+  inputmode="text"
+  value="${this._state.addDraft || ''}"
+  oninput="Friends._setAddDraft(this.value)"
+  onkeydown="Friends._onAddKey(event)"
+  onblur="Friends._onAddBlur()"
+  style="flex:1; margin:0"
+/>
+
+<button id="friend-send-btn" class="manual-btn" onclick="Friends.sendRequest()">INVIA</button>
           </div>
 
           <div class="friends-list">
@@ -656,6 +681,32 @@ togglePassword() {
     this.render();
   },
 
+_setAddDraft(v) {
+  if (!this._state) this._state = {};
+  this._state.addDraft = String(v || '');
+},
+
+_isAddInputFocused() {
+  return (this._state?.tab === 'add') && (document.activeElement?.id === 'friend-id-input');
+},
+
+_onAddKey(e) {
+  if (!e) return;
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    e.stopPropagation();
+    this.sendRequest();
+  }
+},
+
+_onAddBlur() {
+  if (this._state?._deferredRender) {
+    this._state._deferredRender = false;
+    this.render();
+  }
+},
+
+
 async sendRequest() {
   try {
     if (this._state.requestBusy) return;
@@ -663,8 +714,11 @@ async sendRequest() {
 
     if (!Auth.isLoggedIn()) { showMessage('Devi fare login', 'warning'); return; }
 
-    const input = document.getElementById('friend-id-input');
-    const raw = (input?.value || '').trim().toUpperCase();
+const input = document.getElementById('friend-id-input');
+const btn = document.getElementById('friend-send-btn');
+
+const draft = (this._state?.addDraft ?? input?.value ?? '');
+const raw = String(draft).trim().toUpperCase();
     if (!raw) { showMessage('Inserisci un codice amico', 'warning'); return; }
 
     const myCode = this.getMyId();
@@ -673,9 +727,11 @@ async sendRequest() {
     const client = Auth.client();
     if (!client) { showMessage('Client non pronto', 'negative'); return; }
 
-    // UI feedback
-    this._state.loading = true;
-    this.render();
+// UI feedback (senza rerender mentre scrivi)
+this._state.loading = true;
+
+if (input) input.disabled = true;
+if (btn) btn.disabled = true;
 
     const { data, error } = await client.rpc('send_friend_request_by_code', { target_code: raw });
 
@@ -693,7 +749,8 @@ async sendRequest() {
       return;
     }
 
-    if (input) input.value = '';
+this._state.addDraft = '';
+if (input) input.value = '';
 
     if (data.action === 'accepted') {
       showMessage('Richiesta trovata: amicizia creata ✅', 'positive');
@@ -706,9 +763,18 @@ async sendRequest() {
     console.error('sendRequest error:', e);
     showMessage('Errore invio richiesta', 'negative');
   } finally {
-    this._state.requestBusy = false;
-    this._state.loading = false;
-    this.render();
+this._state.requestBusy = false;
+this._state.loading = false;
+
+if (input) input.disabled = false;
+if (btn) btn.disabled = false;
+
+// se l'input è (o era) in focus, non rubare la tastiera con un rerender
+if (this._isAddInputFocused()) {
+  this._state._deferredRender = true;
+} else {
+  this.render();
+}
   }
 },
 

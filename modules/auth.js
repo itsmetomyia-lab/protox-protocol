@@ -25,7 +25,14 @@ const Auth = {
         return null;
         }
 
-        this._client = lib.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+       this._client = lib.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage
+  }
+});
 
       // Sessione iniziale
       this._client.auth.getSession().then(({ data }) => {
@@ -34,10 +41,31 @@ const Auth = {
       });
 
       // Listener cambi auth
-      this._client.auth.onAuthStateChange((_event, session) => {
-        this._session = session;
-        this._emit();
+this._manualSignOut = false;
+
+this._client.auth.onAuthStateChange((event, session) => {
+
+  // se arriva null ma NON è un vero signout, aspetta un attimo e ricontrolla
+  if (!session && event !== 'SIGNED_OUT') {
+    setTimeout(() => {
+      this._client.auth.getSession().then(({ data }) => {
+        if (data?.session) {
+          this._session = data.session;
+          this._emit();
+        }
       });
+    }, 250);
+    return;
+  }
+
+  // vero logout
+  if (event === 'SIGNED_OUT' && !this._manualSignOut) {
+    try { if (typeof showMessage !== 'undefined') showMessage('Sessione finita. Rifai login.', 'warning'); } catch(e) {}
+  }
+
+  this._session = session;
+  this._emit();
+});
 
       return this._client;
     } catch (e) {
@@ -92,12 +120,14 @@ const Auth = {
     return { ok: true, data };
   },
 
-  async signOut() {
-    const client = this.client();
-    if (!client) return;
+async signOut() {
+  const client = this.client();
+  if (!client) return;
 
-    await client.auth.signOut();
-  }
+  this._manualSignOut = true;
+  await client.auth.signOut();
+  this._manualSignOut = false;
+}
 };
 
 // auto-init
