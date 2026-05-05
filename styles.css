@@ -12821,3 +12821,128 @@ body.shades-mode #planner-panel .week-label{
   color: rgba(255,255,255,0.82);
   text-shadow: 0 0 12px var(--purple-glow);
 }
+
+
+
+/* ============================================
+   PLANNER — Mobile + SHADES: niente sfasamenti
+   ============================================ */
+@media (max-width: 420px){
+
+  body.shades-mode #planner-panel .planner-day{
+    overflow: hidden;
+  }
+
+  /* se i numeri sono dentro .day-num (come nel tuo polishing) */
+  body.shades-mode #planner-panel .planner-day .day-num{
+    font-size: 0.68rem;
+    padding: 0px 4px;
+    border-radius: 999px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* label settimana (se hai classi week-label / week-num in css) */
+  body.shades-mode #planner-panel .week-label,
+  body.shades-mode #planner-panel .week-num{
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+}
+
+
+/* ============================================
+   LOG (attività recenti) — layout robusto mobile
+   ============================================ */
+
+.log-card{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.log-icon{
+  width: 28px;
+  flex: 0 0 28px;
+  text-align: center;
+}
+
+.log-text{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-reason{
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-time{
+  font-size: 0.75rem;
+  opacity: 0.75;
+  font-weight: 700;
+}
+
+.log-amt{
+  flex: 0 0 auto;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border-strong);
+  background: var(--accent-soft2);
+  color: var(--purple-main);
+  box-shadow: 0 0 14px var(--purple-glow);
+}
+
+.log-negative .log-amt{
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.45);
+  background: rgba(239,68,68,0.10);
+  box-shadow: 0 0 14px rgba(239,68,68,0.25);
+}
+
+@media (max-width: 420px){
+  .log-amt{ font-size: 0.78rem; }
+}
+
+
+
+/* ============================================
+   ACTIONS — Mobile: no overlap tra nome / ∞ / XP
+   ============================================ */
+
+.action-item{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-name{
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-tag,
+.action-xp{
+  flex: 0 0 auto;
+}
+
+.action-tag{
+  margin-left: 6px;
+}
+
+@media (max-width: 420px){
+  .action-item{ gap: 8px; }
+  .action-tag{ margin-left: 4px; }
+}

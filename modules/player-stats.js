@@ -360,16 +360,16 @@ function updateUI(player) {
 
             const div = document.createElement('div');
             div.className = `log-card ${entry.type === '+' ? 'log-positive' : 'log-negative'}`;
-            div.innerHTML = `
-                <div class="log-card-left">
-                    <span class="log-card-icon">${icon}</span>
-                    <div class="log-card-info">
-                        <span class="log-card-reason">${entry.reason}</span>
-                        <span class="log-card-time">${entry.time}</span>
-                    </div>
-                </div>
-                <span class="log-card-xp">${entry.type}${entry.amount}</span>
-            `;
+div.innerHTML = `
+  <span class="log-icon">${icon}</span>
+
+  <span class="log-text">
+    <span class="log-reason">${entry.reason}</span>
+    <span class="log-time">${entry.time}</span>
+  </span>
+
+  <span class="log-amt">${entry.type}${entry.amount}</span>
+`;
             logContainer.appendChild(div);
         });
     }

@@ -209,11 +209,16 @@ const Planner = {
         // Dividi in settimane per visual clarity
         for (let week = 0; week < 13; week++) {
             html += '<div class="planner-week">';
-            if (week === 0) {
-                html += `<span class="week-label">Sett ${week + 1}</span>`;
-            } else {
-                html += `<span class="week-label">${week + 1}</span>`;
-            }
+           const isNarrow = window.innerWidth <= 420;
+
+if (isNarrow) {
+  // mobile: label corta (non rompe la griglia)
+  html += `S${week + 1}`;
+} else {
+  // desktop: label estesa (bella)
+  if (week === 0) html += `Sett ${week + 1}`;
+  else html += `${week + 1}`;
+}
             html += '<div class="week-days">';
 
             for (let d = 0; d < 7; d++) {
