@@ -380,60 +380,60 @@ changeName() {
   const overlay = document.createElement('div');
   overlay.id = 'friends-overlay';
   overlay.dataset.owner = 'profile-rename';
+  overlay.dataset.variant = 'name';      // in changeName()
 
-  overlay.innerHTML = `
-    <div id="friends-panel">
+overlay.innerHTML = `
+  <div id="friends-panel" class="px-identity-panel px-identity--name">
 
-      <div class="friends-header">
-        <div class="friends-title">
-          <h2>CAMBIA NOME</h2>
-          <p class="friends-subtitle">Stessa animazione Friends. Identità nuova.</p>
-        </div>
-        <button class="friends-icon-btn" onclick="Profile.closeChangeName()">✕</button>
+    <div class="px-identity-head">
+      <div class="px-identity-head-left">
+        <div class="px-identity-kicker">IDENTITY</div>
+        <div class="px-identity-title">CAMBIA NOME</div>
+        <div class="px-identity-sub">Pulito. Secco. Tuo.</div>
       </div>
 
-      <div id="friends-content">
-
-        <div class="section-card">
-          <div class="section-card-header">
-            <h3>NOME ATTUALE</h3>
-          </div>
-
-          <div style="font-weight:900; font-size:1.05rem; color:rgba(255,255,255,0.92)">
-            ${player.name || 'Player'}
-          </div>
-        </div>
-
-        <div class="section-card" style="margin-top:12px">
-          <div class="section-card-header">
-            <h3>NUOVO NOME</h3>
-          </div>
-
-          <input
-            type="text"
-            id="new-name-input"
-            class="manual-input"
-            placeholder="Chi vuoi diventare?"
-            maxlength="20"
-            autocomplete="off"
-            value=""
-            oninput="Profile.checkNewName()"
-          />
-
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px">
-            <div class="friends-meta"><span id="name-char-count">0</span>/20</div>
-
-            <button class="manual-btn disabled" id="changename-btn" onclick="Profile.submitNewName()">
-              CAMBIA ⚡
-            </button>
-          </div>
-
-          <p class="friends-subtitle" style="margin-top:10px">Solo per te. Nessuno lo vede.</p>
-        </div>
-
-      </div>
+      <button class="px-identity-close" onclick="Profile.closeChangeName()">✕</button>
     </div>
-  `;
+
+    <div id="friends-content" class="px-identity-body">
+
+      <div class="px-identity-hero">
+        <div class="px-identity-avatar">${this.getAvatarEmoji(loadPlayer().level)}</div>
+
+        <div class="px-identity-current">
+          <div class="px-mini">NOME ATTUALE</div>
+          <div class="px-current-name">${(loadPlayer().name || 'Player')}</div>
+        </div>
+      </div>
+
+      <div class="section-card px-identity-card">
+        <div class="px-mini">NUOVO NOME</div>
+
+        <input
+          type="text"
+          id="new-name-input"
+          class="manual-input px-identity-input"
+          placeholder="Chi vuoi diventare?"
+          maxlength="20"
+          autocomplete="off"
+          value=""
+          oninput="Profile.checkNewName()"
+        />
+
+        <div class="px-identity-row">
+          <div class="px-identity-count"><span id="name-char-count">0</span>/20</div>
+
+          <button class="manual-btn px-identity-primary disabled" id="changename-btn" onclick="Profile.submitNewName()">
+            APPLICA
+          </button>
+        </div>
+
+        <div class="px-identity-note">Solo per te.</div>
+      </div>
+
+    </div>
+  </div>
+`;
 
   // click fuori = chiude (stesso pattern Friends)
   overlay.addEventListener('click', (e) => {
@@ -501,17 +501,13 @@ submitNewName() {
   Storage.save('player', player);
 
   // chiusura con animazione "success" (niente glitch)
-this.closeChangeName();
+const ov = document.querySelector('#friends-overlay[data-owner="profile-rename"]');
+ov?.classList.add('px-rename-outfx');
 
-  // aggiorna UI subito (l’overlay sta solo facendo exit)
-  this.updateName();
-  updateUI(player);
+const btn = document.getElementById('changename-btn');
+btn?.classList.add('px-rename-btnpop');
 
-  showMessage(`${oldName} → ${newName}`, 'positive');
-
-  if (typeof Particles !== 'undefined') {
-    Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
-  }
+setTimeout(() => this.closeChangeName(), 220);
 },
 
 closeChangeName() {
@@ -806,68 +802,63 @@ changeProtocolName() {
 
   document.getElementById('changename-popup')?.remove();
 
-  const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
+const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
 
   const overlay = document.createElement('div');
   overlay.id = 'friends-overlay';
   overlay.dataset.owner = 'profile-rename';
+  overlay.dataset.variant = 'protocol';  // in changeProtocolName()
 
-  overlay.innerHTML = `
-    <div id="friends-panel">
+overlay.innerHTML = `
+  <div id="friends-panel" class="px-identity-panel px-identity--protocol">
 
-      <div class="friends-header">
-        <div class="friends-title">
-          <h2>NOME PROTOCOLLO</h2>
-          <p class="friends-subtitle">Stesso pop Friends. Header nuovo.</p>
-        </div>
-        <button class="friends-icon-btn" onclick="Profile.closeProtocolName()">✕</button>
+    <div class="px-identity-head">
+      <div class="px-identity-head-left">
+        <div class="px-identity-kicker">PROTOCOL</div>
+        <div class="px-identity-title">NOME PROTOCOLLO</div>
+        <div class="px-identity-sub">Quello che vedi in alto. Sempre.</div>
       </div>
 
-      <div id="friends-content">
-
-        <div class="section-card">
-          <div class="section-card-header">
-            <h3>ANTEPRIMA HEADER</h3>
-          </div>
-
-          <div class="friends-name"
-               style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-size:0.95rem"
-               id="protocol-preview-title">${currentName}</div>
-
-          <div class="friends-subtitle" style="margin-top:6px">Così lo vedi in alto.</div>
-        </div>
-
-        <div class="section-card" style="margin-top:12px">
-          <div class="section-card-header">
-            <h3>NUOVO NOME</h3>
-          </div>
-
-          <input
-            type="text"
-            id="protocol-name-input"
-            class="manual-input"
-            placeholder="Il nome del tuo protocollo..."
-            maxlength="25"
-            autocomplete="off"
-            value=""
-            data-current="${currentName}"
-            oninput="Profile.checkProtocolName()"
-          />
-
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px">
-            <div class="friends-meta"><span id="protocol-char-count">0</span>/25</div>
-
-            <button class="manual-btn disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
-              RINOMINA ⚡
-            </button>
-          </div>
-
-          <p class="friends-subtitle" style="margin-top:10px">Appare nell’header.</p>
-        </div>
-
-      </div>
+      <button class="px-identity-close" onclick="Profile.closeProtocolName()">✕</button>
     </div>
-  `;
+
+    <div id="friends-content" class="px-identity-body">
+
+      <div class="px-proto-preview">
+        <div class="px-mini">ANTEPRIMA HEADER</div>
+        <div class="px-proto-title" id="protocol-preview-title">${currentName}</div>
+        <div class="px-proto-sub">Così lo vedrai.</div>
+      </div>
+
+      <div class="section-card px-identity-card">
+        <div class="px-mini">NUOVO NOME</div>
+
+        <input
+          type="text"
+          id="protocol-name-input"
+          class="manual-input px-identity-input"
+          placeholder="Il nome del tuo protocollo..."
+          maxlength="25"
+          autocomplete="off"
+          value=""
+          data-current="${currentName}"
+          oninput="Profile.checkProtocolName()"
+        />
+
+        <div class="px-identity-row">
+          <div class="px-identity-count"><span id="protocol-char-count">0</span>/25</div>
+
+          <button class="manual-btn px-identity-primary disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
+            APPLICA
+          </button>
+        </div>
+
+        <div class="px-identity-note">Appare nell’header.</div>
+      </div>
+
+    </div>
+  </div>
+`;
 
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) Profile.closeChangeName();
@@ -951,13 +942,14 @@ if (header) {
   header.classList.add('protox-rename-pop');
 }
 
-  this.closeProtocolName();
+const ov = document.querySelector('#friends-overlay[data-owner="profile-rename"]');
+ov?.classList.add('px-rename-outfx');
 
-  showMessage(`Protocollo rinominato: ${newName}`, 'positive');
+const btn = document.getElementById('protocol-name-btn');
+btn?.classList.add('px-rename-btnpop');
 
-  if (typeof Particles !== 'undefined') {
-    Particles.xpGainBurst(window.innerWidth / 2, window.innerHeight / 2);
-  }
+// lascia 1 attimo vedere l’effetto, poi chiudi con friendsOut (intoccabile)
+setTimeout(() => this.closeProtocolName(), 220);
 
 },
 

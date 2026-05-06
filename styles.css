@@ -13368,3 +13368,272 @@ body.shades-mode #planner-panel .week-label{
   }
   #px-rename-panel::after{ display:none !important; }
 }
+
+
+
+/* =========================================================
+   PROFILE RENAME (inside Friends shell) — UNIQUE LOOK
+   Non tocca animazioni: solo stile, scoped by data-owner.
+   ========================================================= */
+
+#friends-overlay[data-owner="profile-rename"]{
+  /* diverso da Friends: più clean, meno "network" */
+  background:
+    radial-gradient(900px 420px at 50% 0%, color-mix(in srgb, var(--purple-main) 18%, transparent), transparent 60%),
+    rgba(0,0,0,0.70);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#friends-overlay[data-owner="profile-rename"] #friends-panel{
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 38px 120px rgba(0,0,0,0.62);
+
+  background:
+    radial-gradient(900px 420px at 20% -10%, var(--accent-soft2), transparent 55%),
+    radial-gradient(800px 360px at 95% 10%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  overflow: hidden;
+  position: relative;
+}
+
+#friends-overlay[data-owner="profile-rename"] #friends-panel::before{
+  content:'';
+  position:absolute;
+  left:0; right:0; top:0;
+  height:3px;
+  background: linear-gradient(90deg, transparent, var(--purple-main), transparent);
+  box-shadow: 0 0 18px var(--purple-glow);
+  opacity: 0.9;
+  pointer-events:none;
+}
+
+/* HEAD */
+#friends-overlay[data-owner="profile-rename"] .px-identity-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-kicker{
+  font-family:'Orbitron',sans-serif;
+  letter-spacing: 4px;
+  font-weight: 900;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-title{
+  margin-top: 6px;
+  font-family:'Orbitron',sans-serif;
+  letter-spacing: 3px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 0 18px var(--purple-glow);
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-sub{
+  margin-top: 6px;
+  font-weight: 750;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+}
+
+/* close button (diverso da friends icon btn) */
+#friends-overlay[data-owner="profile-rename"] .px-identity-close{
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+#friends-overlay[data-owner="profile-rename"] .px-identity-close:hover{
+  transform: translateY(-1px);
+  border-color: var(--accent-border-strong);
+  box-shadow: 0 0 16px var(--purple-glow);
+}
+
+/* BODY */
+#friends-overlay[data-owner="profile-rename"] #friends-content.px-identity-body{
+  padding: 14px;
+  overflow: auto;
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-hero{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-bottom: 12px;
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-avatar{
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display:grid;
+  place-items:center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+  font-size: 1.8rem;
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-mini{
+  font-family:'Orbitron',sans-serif;
+  letter-spacing: 2px;
+  font-weight: 900;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-current-name{
+  margin-top: 6px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.94);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* cards */
+#friends-overlay[data-owner="profile-rename"] .section-card.px-identity-card{
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.18);
+}
+
+#friends-overlay[data-owner="profile-rename"] .manual-input.px-identity-input{
+  margin-top: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+#friends-overlay[data-owner="profile-rename"] .manual-input.px-identity-input:focus{
+  border-color: var(--purple-main);
+  box-shadow: 0 0 16px var(--purple-glow);
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top: 10px;
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-count{
+  font-family:'Orbitron',sans-serif;
+  letter-spacing: 1px;
+  font-weight: 900;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+#friends-overlay[data-owner="profile-rename"] .manual-btn.px-identity-primary{
+  padding: 10px 14px;
+  border-radius: 14px;
+}
+
+#friends-overlay[data-owner="profile-rename"] .px-identity-note{
+  margin-top: 10px;
+  font-weight: 750;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+/* Protocol preview */
+#friends-overlay[data-owner="profile-rename"][data-variant="protocol"] .px-proto-preview{
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.18);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+#friends-overlay[data-owner="profile-rename"][data-variant="protocol"] .px-proto-preview::before{
+  content:'';
+  position:absolute;
+  left:0; right:0; top:0;
+  height:2px;
+  background: linear-gradient(90deg, transparent, var(--purple-main), transparent);
+  box-shadow: 0 0 16px var(--purple-glow);
+  opacity: 0.85;
+}
+#friends-overlay[data-owner="profile-rename"][data-variant="protocol"] .px-proto-title{
+  margin-top: 8px;
+  font-family:'Orbitron',sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.96);
+  text-shadow: 0 0 18px var(--purple-glow);
+}
+#friends-overlay[data-owner="profile-rename"][data-variant="protocol"] .px-proto-sub{
+  margin-top: 6px;
+  font-weight: 750;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+
+
+/* =========================================================
+   PROFILE RENAME — OUT FX (solo success), non tocca Friends anim
+   Trigger: #friends-overlay[data-owner="profile-rename"].px-rename-outfx
+   ========================================================= */
+
+@keyframes pxRenameOutWash{
+  0%   { opacity: 0; transform: scale(0.92); }
+  18%  { opacity: 0.85; transform: scale(1.00); }
+  55%  { opacity: 0.45; transform: scale(1.06); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes pxRenameBtnPop{
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.08); }
+  100% { transform: scale(1.00); }
+}
+
+/* wash luminoso sul panel mentre sta per chiudersi */
+#friends-overlay[data-owner="profile-rename"].px-rename-outfx #friends-panel{
+  box-shadow:
+    0 38px 120px rgba(0,0,0,0.62),
+    0 0 38px var(--purple-glow);
+}
+
+#friends-overlay[data-owner="profile-rename"].px-rename-outfx #friends-panel::after{
+  content:'';
+  position:absolute;
+  inset:-45%;
+  pointer-events:none;
+
+  background: radial-gradient(circle at 50% 55%,
+    color-mix(in srgb, var(--purple-main) 68%, transparent) 0%,
+    rgba(255,255,255,0.00) 62%
+  );
+
+  mix-blend-mode: screen;
+  opacity: 0;
+
+  animation: pxRenameOutWash 520ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+/* micro-pop del bottone (no particelle) */
+#friends-overlay[data-owner="profile-rename"] .px-rename-btnpop{
+  animation: pxRenameBtnPop 220ms cubic-bezier(0.2, 1.4, 0.2, 1) both;
+}
