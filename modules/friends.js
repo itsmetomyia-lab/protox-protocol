@@ -82,6 +82,7 @@ open() {
 
 document.body.appendChild(overlay);
 document.body.style.overflow = 'hidden';
+if (typeof SoundSystem !== 'undefined') SoundSystem.playUIOpen();
 
 // 1 frame per permettere al browser di “pitturare” lo stato iniziale
 requestAnimationFrame(() => {
@@ -134,6 +135,8 @@ close() {
   const overlay = document.getElementById('friends-overlay');
   if (!overlay) return;
 
+
+  if (typeof SoundSystem !== 'undefined') SoundSystem.playUIClose();
   overlay.style.animation = 'friendsOut 0.18s ease forwards';
   setTimeout(() => {
     this._teardownCollabRealtime();

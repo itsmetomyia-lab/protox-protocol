@@ -502,7 +502,7 @@ if (isNarrow) {
         this.render();
 
         if (typeof SoundSystem !== 'undefined') {
-            SoundSystem.playClick();
+            SoundSystem.playUIOpen();
         }
     },
 
@@ -515,7 +515,7 @@ if (isNarrow) {
         document.body.style.overflow = '';
 
         if (typeof SoundSystem !== 'undefined') {
-            SoundSystem.playClick();
+            SoundSystem.playUIClose();
         }
     }
     

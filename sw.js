@@ -3,7 +3,7 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v10';
+const CACHE_NAME = 'protox-v14';
 
 const ASSETS = [
   '/',
@@ -12,6 +12,8 @@ const ASSETS = [
   '/manifest.json',
 
   '/modules/storage.js',
+
+  '/modules/i18n.js',
 
   '/modules/supabase-config.js',
   '/modules/auth.js',

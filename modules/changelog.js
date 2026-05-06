@@ -13,6 +13,37 @@ const Changelog = {
     updates: [
 
 {
+  version: 'RC 0.0.3',
+  date: '2026-05-06',
+  title: '🎨 SHADES MODE + 📱 MOBILE FIX PASS',
+  highlights: [
+    '🎛️ Toggle FLAT ↔ SHADES (tema monocromo o con sfumature vive)',
+    '🧊 No-shades zones: Changelog + Timer/Focus restano clean anche con SHADES',
+    '🗓️ Planner mobile: numeri giorni leggibili + glow + layout stabile',
+    '📜 Recent activity: amount badge leggibile su mobile',
+    '♾️ Actions mobile: fix overflow “∞” + nome sempre leggibile',
+    '🧠 Profile: Change Name / Protocol Name con animazione Friends (identica) + UI unica'
+  ],
+  type: 'major'
+},
+
+{
+  version: 'RC 0.0.2',
+  date: '2026-05-03',
+  title: '🤝 CO-OP + ⚡ ACTIONS HUB (PREMIUM)',
+  highlights: [
+    '⏳ Friends co-op: WAITLIST con countdown live quando sei in anticipo',
+    '📩 Fix inviti: label sempre visibile + stabilità (no doppie funzioni/override)',
+    '📊 Friends hub: STATS in overlay “stack” con BACK (super premium)',
+    '🧩 Home Actions: quick deck = recently used (zero scroll infinito)',
+    '🔎 Actions Hub: overlay ALL + search + filtri',
+    '✨ Smart Create: Fair XP (emoji/categoria/xp più “giusti” mentre scrivi)'
+  ],
+  type: 'EXTREME'
+},
+        
+
+{
   version: 'RC 0.0.1',
   date: '2026-05-02',
   title: '🚀 RC: PREMIUM POLISH PASS',

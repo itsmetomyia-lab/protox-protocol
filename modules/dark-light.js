@@ -8,13 +8,15 @@
 const DarkLight = {
 
   // stato
-  isShadesMode() {
-    try {
-      return Storage.load('shades_mode') === true;
-    } catch {
-      return false;
-    }
-  },
+isShadesMode() {
+  try {
+    // default: ON
+    // diventa OFF solo se l'utente lo spegne (shades_mode === false)
+    return Storage.load('shades_mode') !== false;
+  } catch {
+    return true;
+  }
+},
 
   toggle() {
 

@@ -636,8 +636,10 @@ document.body.style.paddingRight = popup.dataset.prevPadRight || '';
 
 </div>
 
-            <div class="profile-section">
-                <h3>⚙️ IMPOSTAZIONI</h3>
+            <div class="profile-section profile-settings no-shades">
+                <div class="profile-settings-head">
+                  <h3>⚙️ IMPOSTAZIONI</h3>
+                </div>
                 <div class="profile-option" onclick="Profile.changeName()">
                     <span>✏️ Cambia Nome</span>
                     <span>${player.name || 'Player'}</span>
@@ -677,6 +679,7 @@ document.body.style.paddingRight = popup.dataset.prevPadRight || '';
                 <p class="danger-text">Cancella tutti i progressi</p>
             </div>
         `;
+if (typeof I18N !== 'undefined') I18N.renderLanguageUI();
 
         // Render changelog dopo che il DOM è pronto
         setTimeout(() => {

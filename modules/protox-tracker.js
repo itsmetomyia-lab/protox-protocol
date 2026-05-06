@@ -95,6 +95,22 @@ const ProtoxTracker = {
         };
     },
 
+toggleInfo() {
+
+  const sec = document.getElementById('protox-section');
+  if (!sec) return;
+
+  const open = sec.classList.toggle('protox-info-open');
+
+  const btn = document.getElementById('protox-info-btn');
+  const box = document.getElementById('protox-info');
+
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (box) box.setAttribute('aria-hidden', open ? 'false' : 'true');
+
+},
+
+
     // Aggiorna display
     updateDisplay() {
         const player = loadPlayer();

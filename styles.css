@@ -13637,3 +13637,300 @@ body.shades-mode #planner-panel .week-label{
 #friends-overlay[data-owner="profile-rename"] .px-rename-btnpop{
   animation: pxRenameBtnPop 220ms cubic-bezier(0.2, 1.4, 0.2, 1) both;
 }
+
+
+
+/* ============================================
+   PROTOX INFO (HOME)
+   ============================================ */
+
+#protox-section .protox-head{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* evita che l’h2 abbia margin-bottom doppio (ora lo gestisce il wrapper) */
+#protox-section .protox-head h2{
+  margin: 0;
+}
+
+#protox-section .protox-info-btn{
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--purple-main) 45%, transparent);
+  background: color-mix(in srgb, var(--purple-main) 14%, transparent);
+
+  color: var(--purple-main);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  box-shadow: 0 0 14px var(--purple-glow);
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+
+#protox-section .protox-info-btn:hover{
+  transform: translateY(calc(-50% - 1px));
+  background: color-mix(in srgb, var(--purple-main) 20%, transparent);
+  border-color: color-mix(in srgb, var(--purple-main) 65%, transparent);
+  box-shadow: 0 0 18px var(--purple-glow);
+}
+
+#protox-section .protox-info{
+  margin-top: 10px;
+
+  text-align: left;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+
+  padding: 10px 12px;
+
+  /* collapsed by default */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+
+  transition: max-height .28s ease, opacity .22s ease;
+}
+
+#protox-section.protox-info-open .protox-info{
+  max-height: 260px;
+  opacity: 1;
+}
+
+#protox-section .protox-info-title{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+#protox-section .protox-info p{
+  margin: 0 0 8px;
+  color: rgba(255,255,255,0.88);
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+#protox-section .protox-info ul{
+  margin: 6px 0 10px;
+  padding-left: 18px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+}
+
+#protox-section .protox-info li{
+  margin: 4px 0;
+}
+
+.profile-option-lang{
+  cursor: default;
+}
+
+.lang-mini-toggle{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.lang-mini-btn{
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+
+  color: rgba(255,255,255,0.90);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+
+  cursor: pointer;
+}
+
+.lang-mini-btn.active{
+  border-color: var(--accent-border-strong);
+  background: var(--accent-soft2);
+  color: var(--purple-main);
+  box-shadow: 0 0 16px var(--purple-glow);
+}
+
+
+.profile-option-lang{ cursor: default; }
+
+.lang-mini-toggle{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.lang-mini-btn{
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+
+  color: rgba(255,255,255,0.90);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+
+  cursor: pointer;
+}
+
+.lang-mini-btn.active{
+  border-color: var(--accent-border-strong);
+  background: var(--accent-soft2);
+  color: var(--purple-main);
+  box-shadow: 0 0 16px var(--purple-glow);
+}
+
+/* TEMP: nascondi selettore lingua (provvisorio) */
+.profile-option-lang{ display:none !important; }
+
+
+/* ============================================
+   PROFILE SETTINGS — PREMIUM (anche con .no-shades)
+   ============================================ */
+
+#page-profile #profile-content .profile-section.profile-settings.no-shades{
+  background: var(--bg-card) !important;           /* in no-shades questi vars sono “flat” */
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+  margin-top: 10px !important;
+
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#page-profile #profile-content .profile-section.profile-settings.no-shades::before{
+  content:'' !important;
+  position:absolute !important;
+  left:0; right:0; top:0 !important;
+  height:3px !important;
+
+  background: linear-gradient(90deg, transparent, var(--purple-main), transparent) !important;
+  box-shadow: 0 0 18px var(--purple-glow) !important;
+  opacity: 0.9 !important;
+  pointer-events:none !important;
+}
+
+/* titolo "IMPOSTAZIONI" */
+#page-profile #profile-content .profile-section.profile-settings.no-shades h3{
+  margin: 0 0 10px !important;
+
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 3px !important;
+  font-weight: 900 !important;
+
+  color: rgba(255,255,255,0.95) !important;
+  text-shadow: 0 0 18px var(--purple-glow) !important;
+}
+
+/* righe settings premium */
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap: 12px !important;
+
+  padding: 12px 12px !important;
+  padding-right: 34px !important;
+
+  border-radius: 16px !important;
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+
+  cursor: pointer !important;
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease !important;
+
+  position: relative !important;
+}
+
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option + .profile-option{
+  margin-top: 8px !important;
+}
+
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option::after{
+  content: '›' !important;
+  position:absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+
+  color: var(--text-dim) !important;
+  font-weight: 900 !important;
+  font-size: 1.1rem !important;
+  opacity: 0.75 !important;
+}
+
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option:hover{
+  transform: translateY(-1px) !important;
+  background: var(--accent-soft2) !important;          /* in no-shades = flat accent */
+  border-color: var(--accent-border-strong) !important;
+  box-shadow: 0 0 16px var(--purple-glow) !important;
+}
+
+/* testo sinistra (nomi opzioni) */
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option span:first-child{
+  color: rgba(255,255,255,0.92) !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 0.98rem !important;
+}
+
+/* valore destra (ON/OFF ecc) */
+#page-profile #profile-content .profile-section.profile-settings.no-shades .profile-option span:last-child{
+  max-width: 48% !important;
+  text-align: right !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 2px !important;
+
+  color: var(--text-dim) !important;
+  text-transform: uppercase !important;
+}
+
+/* status ON/OFF theme-based (non verde) */
+#page-profile #profile-content .profile-section.profile-settings.no-shades #sound-status,
+#page-profile #profile-content .profile-section.profile-settings.no-shades #notif-status{
+  color: var(--purple-main) !important;
+  text-shadow: 0 0 14px var(--purple-glow) !important;
+}
+
+
+/* TEMP: nascondi selettore lingua */
+#page-profile .profile-option-lang{ display:none !important; }
