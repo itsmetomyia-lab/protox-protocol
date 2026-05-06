@@ -224,82 +224,248 @@ const Profile = {
 
         showMessage(`Benvenuto ${name}! Il Protocollo è iniziato.`, 'positive');
     },
-    // Cambia nome
-    changeName() {
-        const popup = document.createElement('div');
-        popup.id = 'changename-popup';
 
-        
-        
-        const player = loadPlayer();
-        
-        popup.innerHTML = `
-            <div class="changename-container">
-                <div class="changename-header">
-                    <h2>CAMBIA NOME</h2>
-                    <button class="changename-close" onclick="Profile.closeChangeName()">✕</button>
-                </div>
+_hasKeyframes(name) {
+  try {
+    const KEYFRAMES = (window.CSSRule && CSSRule.KEYFRAMES_RULE) ? CSSRule.KEYFRAMES_RULE : 7;
 
-                <div class="changename-current">
-                    <span class="changename-label">NOME ATTUALE</span>
-                    <span class="changename-value">${player.name || 'Player'}</span>
-                </div>
+    for (const sheet of Array.from(document.styleSheets || [])) {
+      let rules;
+      try { rules = sheet.cssRules; } catch (e) { continue; } // CORS / blocked
+      if (!rules) continue;
 
-                <div class="changename-avatar">
-                    ${this.getAvatarEmoji(player.level)}
-                </div>
+      for (const r of Array.from(rules)) {
+        if (r && r.type === KEYFRAMES && r.name === name) return true;
+      }
+    }
+  } catch (e) {}
+  return false;
+},
 
-                <div class="changename-field">
-                    <label>NUOVO NOME</label>
-                    <input type="text"
-                           id="new-name-input"
-                           class="changename-input"
-                           placeholder="Chi vuoi diventare?"
-                           maxlength="20"
-                           autocomplete="off"
-                           value=""
-                           oninput="Profile.checkNewName()">
-                    <div class="changename-charcount">
-                        <span id="name-char-count">0</span>/20
-                    </div>
-                </div>
+_findFriendsPanelOutName() {
+  // Non sappiamo come lo hai chiamato nel CSS: lo troviamo da solo.
+  // Cerchiamo un keyframes che inizia con "friendsPanel" e NON è "friendsPanelIn".
+  try {
+    const KEYFRAMES = (window.CSSRule && CSSRule.KEYFRAMES_RULE) ? CSSRule.KEYFRAMES_RULE : 7;
 
-                <button class="changename-submit disabled" id="changename-btn" onclick="Profile.submitNewName()">
-                    CAMBIA IDENTITÀ ⚡
-                </button>
+    for (const sheet of Array.from(document.styleSheets || [])) {
+      let rules;
+      try { rules = sheet.cssRules; } catch (e) { continue; }
+      if (!rules) continue;
 
-                <p class="changename-note">Il tuo nome è solo per te. Nessuno lo vede.</p>
-            </div>
-        `;
-        
-        document.body.appendChild(popup);
-// lock scroll SENZA shift orizzontale (desktop scrollbar)
-const sbw = window.innerWidth - document.documentElement.clientWidth;
-document.body.style.overflow = 'hidden';
-document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+      for (const r of Array.from(rules)) {
+        const nm = r?.name;
+        if (r?.type === KEYFRAMES && typeof nm === 'string') {
+          if (nm.startsWith('friendsPanel') && nm !== 'friendsPanelIn') return nm;
+        }
+      }
+    }
+  } catch (e) {}
+
+  // fallback (se non lo trova)
+  return 'friendsPanelOut';
+},
+
+_playFriendsAnimIn(popup) {
+
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) return;
+
+  if (!popup) return;
+
+  const card = popup.querySelector('.changename-container') || popup.firstElementChild;
+  if (!card) return;
+
+  // KILL qualunque animazione precedente (vince su tutto)
+  popup.style.setProperty('animation', 'none', 'important');
+  card.style.setProperty('animation', 'none', 'important');
+
+  // reflow: garantisce che il browser “veda” il reset
+  void popup.offsetWidth;
+
+  // Overlay IN: se esiste friendsIn usiamolo, altrimenti fade semplice
+  if (this._hasKeyframes('friendsIn')) {
+    popup.style.setProperty('animation', 'friendsIn 0.22s ease both', 'important');
+  } else {
+    popup.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease', fill: 'both' });
+  }
+
+  // Panel IN: QUESTO è quello che vuoi (Friends aspetta friendsPanelIn) <!--citation:1-->
+  card.style.setProperty('animation', 'friendsPanelIn 0.34s cubic-bezier(0.2, 1.4, 0.2, 1) both', 'important');
+
+  // MINI FLASH (sheen) — identico vibe Friends
+  const sheen = document.createElement('div');
+  sheen.setAttribute('aria-hidden', 'true');
+
+  // card deve clipparlo
+  const cs = getComputedStyle(card);
+  if (cs.position === 'static') card.style.position = 'relative';
+  card.style.overflow = 'hidden';
+
+  sheen.style.cssText = `
+    position:absolute;
+    top:-40%;
+    left:-80%;
+    width:60%;
+    height:180%;
+    transform: translateX(0) rotate(18deg);
+    pointer-events:none;
+    opacity:0;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.00) 0%,
+      rgba(255,255,255,0.16) 45%,
+      rgba(255,255,255,0.00) 100%
+    );
+    mix-blend-mode: screen;
+  `;
+  card.appendChild(sheen);
+
+  sheen.animate(
+    [
+      { transform: 'translateX(0) rotate(18deg)', opacity: 0 },
+      { transform: 'translateX(210%) rotate(18deg)', opacity: 0.95, offset: 0.35 },
+      { transform: 'translateX(340%) rotate(18deg)', opacity: 0 }
+    ],
+    { duration: 520, easing: 'cubic-bezier(0.2, 0.9, 0.2, 1)', fill: 'both' }
+  ).onfinish = () => sheen.remove();
+},
+
+_playFriendsAnimOut(popup, done) {
+
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!popup) { if (done) done(); return; }
+
+  const card = popup.querySelector('.changename-container') || popup.firstElementChild;
+
+  // evita doppia chiusura
+  if (popup.dataset.closing === '1') return;
+  popup.dataset.closing = '1';
+
+  if (popup._onEsc) {
+    document.removeEventListener('keydown', popup._onEsc);
+    popup._onEsc = null;
+  }
+
+  if (reduced) { if (done) done(); return; }
+
+  // Overlay OUT = identico Friends.close() <!--citation:1-->
+  popup.style.setProperty('animation', 'friendsOut 0.18s ease forwards', 'important');
+
+  // Panel OUT: troviamo il nome giusto dal CSS (così è 1:1 davvero)
+  if (card) {
+    const outName = this._findFriendsPanelOutName();
+    card.style.setProperty('animation', `${outName} 0.18s ease forwards`, 'important');
+  }
+
+  setTimeout(() => { if (done) done(); }, 180);
+},
 
 
-        
-        // stesso trigger di Friends.open()
-requestAnimationFrame(() => popup.classList.add('friends-in'));
+    //cambia nome
+changeName() {
 
-// chiudi cliccando sul backdrop (fuori dalla card)
-popup.addEventListener('mousedown', (e) => {
-  if (e.target === popup) Profile.closeChangeName();
-});
+  // Se c'è già Friends aperto, non possiamo riusare lo stesso overlay id
+  const existingFriends = document.getElementById('friends-overlay');
+  if (existingFriends) {
+    showMessage('Chiudi AMICI prima.', 'warning');
+    return;
+  }
 
-// chiudi con ESC
-const onEsc = (e) => {
-  if (e.key === 'Escape') Profile.closeChangeName();
-};
-popup._onEsc = onEsc;
-document.addEventListener('keydown', onEsc);
-    
-        // Focus input
-        setTimeout(() => {
-            document.getElementById('new-name-input')?.focus();
-        }, 300);
-    },
+  // kill eventuale vecchio popup rename (legacy)
+  document.getElementById('changename-popup')?.remove();
+
+  const player = loadPlayer();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-overlay';
+  overlay.dataset.owner = 'profile-rename';
+
+  overlay.innerHTML = `
+    <div id="friends-panel">
+
+      <div class="friends-header">
+        <div class="friends-title">
+          <h2>CAMBIA NOME</h2>
+          <p class="friends-subtitle">Stessa animazione Friends. Identità nuova.</p>
+        </div>
+        <button class="friends-icon-btn" onclick="Profile.closeChangeName()">✕</button>
+      </div>
+
+      <div id="friends-content">
+
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>NOME ATTUALE</h3>
+          </div>
+
+          <div style="font-weight:900; font-size:1.05rem; color:rgba(255,255,255,0.92)">
+            ${player.name || 'Player'}
+          </div>
+        </div>
+
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header">
+            <h3>NUOVO NOME</h3>
+          </div>
+
+          <input
+            type="text"
+            id="new-name-input"
+            class="manual-input"
+            placeholder="Chi vuoi diventare?"
+            maxlength="20"
+            autocomplete="off"
+            value=""
+            oninput="Profile.checkNewName()"
+          />
+
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px">
+            <div class="friends-meta"><span id="name-char-count">0</span>/20</div>
+
+            <button class="manual-btn disabled" id="changename-btn" onclick="Profile.submitNewName()">
+              CAMBIA ⚡
+            </button>
+          </div>
+
+          <p class="friends-subtitle" style="margin-top:10px">Solo per te. Nessuno lo vede.</p>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  // click fuori = chiude (stesso pattern Friends)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) Profile.closeChangeName();
+  });
+
+  document.body.appendChild(overlay);
+
+  // lock scroll SENZA shift orizzontale (desktop scrollbar)
+  const sbw = window.innerWidth - document.documentElement.clientWidth;
+  overlay.dataset.prevOverflow = document.body.style.overflow || '';
+  overlay.dataset.prevPadRight = document.body.style.paddingRight || '';
+
+  document.body.style.overflow = 'hidden';
+  document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+
+  // ESC
+  const onEsc = (e) => { if (e.key === 'Escape') Profile.closeChangeName(); };
+  overlay._onEsc = onEsc;
+  document.addEventListener('keydown', onEsc);
+
+  // TRIGGER identico a Friends.open(): 1 frame e poi friends-in <!--citation:1-->
+  requestAnimationFrame(() => {
+    overlay.classList.add('friends-in');
+  });
+
+  // Focus input
+  setTimeout(() => {
+    document.getElementById('new-name-input')?.focus();
+  }, 300);
+
+},
 
     checkNewName() {
         const input = document.getElementById('new-name-input');
@@ -349,30 +515,34 @@ this.closeChangeName();
 },
 
 closeChangeName() {
-  const popup = document.getElementById('changename-popup');
 
+const popup =
+  document.querySelector('#friends-overlay[data-owner="profile-rename"]') ||
+  document.getElementById('changename-popup'); // fallback legacy
   if (!popup) {
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
+document.body.style.overflow = popup.dataset.prevOverflow || '';
+document.body.style.paddingRight = popup.dataset.prevPadRight || '';
     return;
   }
 
-  // evita doppia chiusura
   if (popup.dataset.closing === '1') return;
   popup.dataset.closing = '1';
 
-  // pulizia ESC listener (se presente)
   if (popup._onEsc) {
     document.removeEventListener('keydown', popup._onEsc);
     popup._onEsc = null;
   }
 
-  // Reduced motion: chiudi subito
+  const restore = () => {
+    document.body.style.overflow = popup.dataset.prevOverflow || '';
+    document.body.style.paddingRight = popup.dataset.prevPadRight || '';
+  };
+
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   if (reduced) {
     popup.remove();
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
+    restore();
     return;
   }
 
@@ -380,10 +550,8 @@ closeChangeName() {
   popup.style.animation = 'friendsOut 0.18s ease forwards';
 
   setTimeout(() => {
-
     popup.remove();
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
+    restore();
   }, 180);
 },
     // Renderizza profilo
@@ -630,103 +798,101 @@ closeChangeName() {
 
 changeProtocolName() {
 
-  const popup = document.createElement('div');
+  const existingFriends = document.getElementById('friends-overlay');
+  if (existingFriends) {
+    showMessage('Chiudi AMICI prima.', 'warning');
+    return;
+  }
 
-  popup.id = 'changename-popup';
+  document.getElementById('changename-popup')?.remove();
 
   const currentName = Storage.load('protocol_name') || 'PROTOX PROTOCOL';
 
-  popup.innerHTML = `
+  const overlay = document.createElement('div');
+  overlay.id = 'friends-overlay';
+  overlay.dataset.owner = 'profile-rename';
 
-  <div class="changename-container protocol-rename">
+  overlay.innerHTML = `
+    <div id="friends-panel">
 
-    <div class="changename-header">
-
-      <h2>NOME PROTOCOLLO</h2>
-
-      <button class="changename-close" onclick="Profile.closeProtocolName()">✕</button>
-
-    </div>
-
-    <div class="changename-current">
-
-      <span class="changename-label">NOME ATTUALE</span>
-
-      <span class="changename-value">${currentName}</span>
-
-    </div>
-
-    <!-- NEW: anteprima premium al posto dell’orb -->
-    <div class="protocol-preview-card">
-
-      <div class="protocol-preview-top">
-
-        <span class="protocol-preview-kicker">ANTEPRIMA HEADER</span>
-
+      <div class="friends-header">
+        <div class="friends-title">
+          <h2>NOME PROTOCOLLO</h2>
+          <p class="friends-subtitle">Stesso pop Friends. Header nuovo.</p>
+        </div>
+        <button class="friends-icon-btn" onclick="Profile.closeProtocolName()">✕</button>
       </div>
 
-      <div class="protocol-preview-title" id="protocol-preview-title">${currentName}</div>
+      <div id="friends-content">
 
-      <div class="protocol-preview-sub">Così lo vedrai in alto nell’app.</div>
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>ANTEPRIMA HEADER</h3>
+          </div>
 
-    </div>
+          <div class="friends-name"
+               style="font-family:'Orbitron',sans-serif; letter-spacing:2px; font-size:0.95rem"
+               id="protocol-preview-title">${currentName}</div>
 
-    <div class="changename-field">
+          <div class="friends-subtitle" style="margin-top:6px">Così lo vedi in alto.</div>
+        </div>
 
-      <label>NUOVO NOME</label>
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-card-header">
+            <h3>NUOVO NOME</h3>
+          </div>
 
-      <input type="text"
-        id="protocol-name-input"
-        class="changename-input"
-        placeholder="Il nome del tuo protocollo..."
-        maxlength="25"
-        autocomplete="off"
-        value=""
-        data-current="${currentName}"
-        oninput="Profile.checkProtocolName()">
+          <input
+            type="text"
+            id="protocol-name-input"
+            class="manual-input"
+            placeholder="Il nome del tuo protocollo..."
+            maxlength="25"
+            autocomplete="off"
+            value=""
+            data-current="${currentName}"
+            oninput="Profile.checkProtocolName()"
+          />
 
-      <div class="changename-charcount">
-        <span id="protocol-char-count">0</span>/25
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px">
+            <div class="friends-meta"><span id="protocol-char-count">0</span>/25</div>
+
+            <button class="manual-btn disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
+              RINOMINA ⚡
+            </button>
+          </div>
+
+          <p class="friends-subtitle" style="margin-top:10px">Appare nell’header.</p>
+        </div>
+
       </div>
-
     </div>
-
-    <button class="changename-submit disabled" id="protocol-name-btn" onclick="Profile.submitProtocolName()">
-      RINOMINA
-    </button>
-
-    <p class="changename-note">Questo nome apparirà nell’header dell’app.</p>
-
-  </div>
-
   `;
 
-document.body.appendChild(popup);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) Profile.closeChangeName();
+  });
 
-// lock scroll SENZA shift orizzontale (desktop scrollbar)
-const sbw = window.innerWidth - document.documentElement.clientWidth;
-document.body.style.overflow = 'hidden';
-document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+  document.body.appendChild(overlay);
 
-// stesso trigger di Friends.open()
-requestAnimationFrame(() => popup.classList.add('friends-in'));
+  const sbw = window.innerWidth - document.documentElement.clientWidth;
+  overlay.dataset.prevOverflow = document.body.style.overflow || '';
+  overlay.dataset.prevPadRight = document.body.style.paddingRight || '';
 
-// chiudi cliccando sul backdrop (fuori dalla card)
-popup.addEventListener('mousedown', (e) => {
-  if (e.target === popup) Profile.closeChangeName();
-});
+  document.body.style.overflow = 'hidden';
+  document.body.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
 
-// chiudi con ESC
-const onEsc = (e) => {
-  if (e.key === 'Escape') Profile.closeChangeName();
-};
-popup._onEsc = onEsc;
-document.addEventListener('keydown', onEsc);
+  const onEsc = (e) => { if (e.key === 'Escape') Profile.closeChangeName(); };
+  overlay._onEsc = onEsc;
+  document.addEventListener('keydown', onEsc);
 
-// Focus input
-setTimeout(() => {
-  document.getElementById('protocol-name-input')?.focus();
-}, 300);
+  requestAnimationFrame(() => {
+    overlay.classList.add('friends-in');
+  });
+
+  setTimeout(() => {
+    document.getElementById('protocol-name-input')?.focus();
+  }, 300);
 
 },
 
