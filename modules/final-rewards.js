@@ -74,6 +74,12 @@ const FinalRewards = {
     }
   },
 
+  progressPct(current, target) {
+    const safeTarget = Number(target || 0);
+    if (!safeTarget) return 0;
+    return Math.max(0, Math.min(100, (Number(current || 0) / safeTarget) * 100));
+  },
+
   ensureOverlay() {
     let overlay = document.getElementById('final-rewards-overlay');
     if (overlay) return overlay;
@@ -112,13 +118,22 @@ const FinalRewards = {
     mount.innerHTML = `
       <div class="final-rewards-entry-card ${status.readyCount > 0 ? 'claim-ready' : ''}">
         <div class="final-rewards-entry-left">
-          <div class="final-rewards-entry-eyebrow">FINAL REWARDS</div>
-          <div class="final-rewards-entry-title">${mainLabel}</div>
+          <div class="final-rewards-entry-row">
+            <div class="final-rewards-entry-orb">${status.allClaimed ? '✦' : status.readyCount > 0 ? '⚡' : '◎'}</div>
+            <div class="final-rewards-entry-copy">
+              <div class="final-rewards-entry-eyebrow">FINAL REWARDS</div>
+              <div class="final-rewards-entry-title">${mainLabel}</div>
+            </div>
+          </div>
           <div class="final-rewards-entry-sub">${sub}</div>
         </div>
-        <button class="manual-btn final-rewards-open-btn" onclick="FinalRewards.open()">
-          ${status.readyCount > 0 ? 'CLAIMA' : 'APRI'}
-        </button>
+
+        <div class="final-rewards-entry-side">
+          <div class="final-rewards-entry-pill">${status.claimedCount}/2 COMPLETATI</div>
+          <button class="manual-btn final-rewards-open-btn" onclick="FinalRewards.open()">
+            ${status.readyCount > 0 ? 'CLAIMA' : 'APRI'}
+          </button>
+        </div>
       </div>
     `;
   },
@@ -128,37 +143,43 @@ const FinalRewards = {
     const claimed = type === 'reps100k' ? status.repsClaimed : status.xpClaimed;
     const ready = unlocked && !claimed;
     const claimedAt = this.load()[type]?.claimedAt || null;
+    const progress = Math.round(this.progressPct(cfg.current, cfg.target));
 
     return `
       <div class="final-reward-card ${claimed ? 'claimed' : ready ? 'ready' : 'locked'}">
         <div class="final-reward-head">
-          <div>
+          <div class="final-reward-head-main">
             <div class="final-reward-eyebrow">${cfg.eyebrow}</div>
             <div class="final-reward-title">${cfg.title}</div>
+            <div class="final-reward-metric-pill">${cfg.metricLabel}</div>
           </div>
-          <div class="final-reward-icon">${cfg.icon}</div>
+
+          <div class="final-reward-icon-shell">
+            <div class="final-reward-icon">${cfg.icon}</div>
+          </div>
         </div>
 
         <div class="final-reward-progress">
           <div class="final-reward-progress-top">
-            <span>${cfg.metricLabel}</span>
-            <span>${cfg.current.toLocaleString()} / ${cfg.target.toLocaleString()}</span>
+            <span class="final-reward-progress-value">${cfg.current.toLocaleString()} / ${cfg.target.toLocaleString()}</span>
+            <span class="final-reward-progress-pct">${progress}%</span>
           </div>
           <div class="final-reward-bar">
-            <i style="width:${Math.min(100, (cfg.current / cfg.target) * 100)}%"></i>
+            <i style="width:${progress}%"></i>
           </div>
         </div>
 
         <div class="final-reward-copy">
           <p>${cfg.copy}</p>
-          <ul>
-            ${cfg.perks.map(x => `<li>${x}</li>`).join('')}
-          </ul>
+          <div class="final-reward-perks">
+            ${cfg.perks.map(x => `<span class="final-reward-perk">${x}</span>`).join('')}
+          </div>
         </div>
 
         <div class="final-reward-footer">
           <div class="final-reward-status ${claimed ? 'claimed' : ready ? 'ready' : 'locked'}">
-            ${claimed ? `✅ CLAIMATO · ${this.formatDate(claimedAt)}` : ready ? '⚡ PRONTO DA CLAIMARE' : '🔒 BLOCCATO'}
+            <span class="final-reward-status-icon">${claimed ? '✓' : ready ? '⚡' : '•'}</span>
+            <span>${claimed ? `CLAIMATO · ${this.formatDate(claimedAt)}` : ready ? 'PRONTO DA CLAIMARE' : 'BLOCCATO'}</span>
           </div>
           <button
             class="manual-btn final-reward-claim-btn ${claimed ? 'claimed' : ready ? '' : 'disabled'}"
@@ -211,12 +232,27 @@ const FinalRewards = {
     overlay.innerHTML = `
       <div class="final-rewards-modal">
         <div class="final-rewards-modal-head">
-          <div>
-            <div class="final-rewards-modal-eyebrow">FINAL REWARDS HUB</div>
+          <div class="final-rewards-modal-copy">
+            <div class="final-rewards-modal-eyebrow">FINAL REWARDS</div>
             <h2>Claim finale del protocollo</h2>
-            <p>Due sigilli finali. Uno per le reps. Uno per gli XP.</p>
+            <p>Due sigilli finali coerenti con il tema attivo del tuo protocollo.</p>
           </div>
           <button class="manual-btn final-rewards-close-btn" onclick="FinalRewards.close()">✕</button>
+        </div>
+
+        <div class="final-rewards-summary">
+          <div class="final-rewards-summary-item">
+            <span class="final-rewards-summary-label">PRONTI</span>
+            <strong>${status.readyCount}</strong>
+          </div>
+          <div class="final-rewards-summary-item">
+            <span class="final-rewards-summary-label">CLAIMATI</span>
+            <strong>${status.claimedCount}/2</strong>
+          </div>
+          <div class="final-rewards-summary-item">
+            <span class="final-rewards-summary-label">STATO</span>
+            <strong>${status.allClaimed ? 'SINGULARITY' : 'IN CORSO'}</strong>
+          </div>
         </div>
 
         <div class="final-rewards-grid">
@@ -226,7 +262,7 @@ const FinalRewards = {
 
         ${status.allClaimed ? `
           <div class="final-rewards-dual">
-            <div class="final-rewards-dual-badge">⚡ SINGULARITY ASCENDED ⚡</div>
+            <div class="final-rewards-dual-badge">SINGULARITY ASCENDED</div>
             <p>Hai claimato entrambi i sigilli finali di Protox Protocol.</p>
           </div>
         ` : ''}
