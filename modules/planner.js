@@ -389,13 +389,33 @@ if (isNarrow) {
             }
             dayData.planned.forEach(action => {
                 const icon = action.icon || '📌';
+                const carryTag = action.carriedOver
+                    ? `<span style="
+                          display:inline-flex;
+                          align-items:center;
+                          padding:4px 8px;
+                          border-radius:999px;
+                          font-size:0.72rem;
+                          font-weight:700;
+                          color:#8ef0c1;
+                          background:rgba(16,185,129,0.12);
+                          border:1px solid rgba(16,185,129,0.22);
+                          white-space:nowrap;
+                       ">↪ Carry-over${action.sourceDay ? ` · D${action.sourceDay}` : ''}</span>`
+                    : '';
+
                 html += `
                     <div class="planned-item ${action.done ? 'planned-done' : ''}">
                         <button class="planned-check" onclick="Planner.toggleAndRefresh(${dayNum}, '${action.id}')">
                             ${action.done ? '☑️' : '⬜'}
                         </button>
-                        <span class="planned-icon">${icon}</span>
-                        <span class="planned-text">${action.text}</span>
+
+                        <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1; flex-wrap:wrap;">
+                            <span class="planned-icon">${icon}</span>
+                            <span class="planned-text">${action.text}</span>
+                            ${carryTag}
+                        </div>
+
                         <button class="planned-remove" onclick="Planner.removeAndRefresh(${dayNum}, '${action.id}')">✕</button>
                     </div>
                 `;

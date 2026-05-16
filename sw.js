@@ -3,7 +3,7 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v15';
+const CACHE_NAME = 'protox-v16';
 
 const ASSETS = [
   '/',
@@ -34,6 +34,8 @@ const ASSETS = [
   '/modules/daily-reset.js',
   '/modules/notifications.js',
   '/modules/navigation.js',
+  '/modules/planner.js',
+  '/modules/daily-review.js',
   '/modules/player-stats.js',
 
   '/modules/friends.js'

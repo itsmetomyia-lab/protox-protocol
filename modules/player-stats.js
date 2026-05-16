@@ -388,7 +388,11 @@ div.innerHTML = `
     if (nameEl) nameEl.textContent = player.name || 'Player';
 
     if (typeof FinalRewards !== 'undefined') {
-    FinalRewards.renderEntry();
+        FinalRewards.renderEntry();
+    }
+
+    if (typeof DailyReview !== 'undefined') {
+        DailyReview.renderHomeCard();
     }
 }
 

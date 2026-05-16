@@ -8,68 +8,89 @@
 const DailyReset = {
 
     // Controlla se serve un reset
-    check() {
-        const lastReset = Storage.load('lastResetDate');
-        const today = new Date().toDateString();
+check() {
+    const lastReset = Storage.load('lastResetDate');
+    const today = new Date().toDateString();
 
-        if (lastReset !== today) {
-            this.performReset();
-            Storage.save('lastResetDate', today);
+    if (lastReset !== today) {
+        this.performReset();
+        Storage.save('lastResetDate', today);
+
+        if (typeof DailyReview !== 'undefined') {
+            const latest = DailyReview.getLatestReview();
+            if (latest && DailyReview.isUnread(latest)) {
+                setTimeout(() => DailyReview.open(latest.dateKey), 450);
+            }
         }
+    }
 
-        // Imposta timer per mezzanotte
-        this.scheduleMidnightReset();
-    },
+    // Imposta timer per mezzanotte
+    this.scheduleMidnightReset();
+},
 
     // Esegui reset
-    performReset() {
-        const player = loadPlayer();
-        const today = new Date().toDateString();
+performReset() {
+    const player = loadPlayer();
+    const today = new Date().toDateString();
 
-        // Pulisci azioni di ieri (non di oggi)
-        if (player.actionsToday) {
-            const newActions = {};
-            if (player.actionsToday[today]) {
-                newActions[today] = player.actionsToday[today];
-            }
-            player.actionsToday = newActions;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toDateString();
+
+    // IMPORTANTISSIMO:
+    // salviamo le azioni di ieri prima di pulire actionsToday
+    const yesterdayActions = player.actionsToday ? player.actionsToday[yesterdayStr] : null;
+
+    let resetInfo = null;
+    if (typeof DailyReview !== 'undefined') {
+        resetInfo = DailyReview.onNewDay(today);
+    }
+
+    // Aggiorna streak
+    if (player.lastActiveDate && player.lastActiveDate !== today && player.lastActiveDate !== yesterdayStr) {
+        const oldStreak = player.streak;
+        player.streak = 0;
+        if (oldStreak > 0) {
+            console.log(`Streak persa! Era ${oldStreak} giorni.`);
         }
+    }
 
-        // Aggiorna streak
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toDateString();
+    // Conta giorni clean usando DAVVERO le azioni di ieri
+    if (!player.cleanDays) player.cleanDays = 0;
+    if (yesterdayActions) {
+        const hadNegative =
+            yesterdayActions.junk_food ||
+            yesterdayActions.doom_scroll ||
+            yesterdayActions.addiction ||
+            yesterdayActions.skip_workout ||
+            yesterdayActions.late_sleep;
 
-        if (player.lastActiveDate && player.lastActiveDate !== today && player.lastActiveDate !== yesterdayStr) {
-            // Streak persa!
-            const oldStreak = player.streak;
-            player.streak = 0;
-            if (oldStreak > 0) {
-                console.log(`Streak persa! Era ${oldStreak} giorni.`);
-            }
+        if (!hadNegative) {
+            player.cleanDays++;
+        } else {
+            player.cleanDays = 0;
         }
+    }
 
-        // Conta giorni senza azioni negative (per achievement clean week)
-        if (!player.cleanDays) player.cleanDays = 0;
-        const yesterdayActions = player.actionsToday ? player.actionsToday[yesterdayStr] : null;
-        if (yesterdayActions) {
-            const hadNegative = yesterdayActions.junk_food || yesterdayActions.doom_scroll || yesterdayActions.addiction;
-            if (!hadNegative) {
-                player.cleanDays++;
-            } else {
-                player.cleanDays = 0;
-            }
+    // Pulisci azioni vecchie, tieni solo oggi
+    if (player.actionsToday) {
+        const newActions = {};
+        if (player.actionsToday[today]) {
+            newActions[today] = player.actionsToday[today];
         }
+        player.actionsToday = newActions;
+    }
 
-        Storage.save('player', player);
+    Storage.save('player', player);
 
-        // Rigenera missioni
-        if (typeof Missions !== 'undefined') {
-            Missions.generateDaily();
-        }
+    // Rigenera missioni
+    if (typeof Missions !== 'undefined') {
+        Missions.generateDaily();
+    }
 
-        console.log('Reset giornaliero completato');
-    },
+    console.log('Reset giornaliero completato');
+    return resetInfo;
+},
 
     // Timer mezzanotte
     scheduleMidnightReset() {
@@ -79,7 +100,7 @@ const DailyReset = {
         const msUntilMidnight = midnight - now;
 
         setTimeout(() => {
-            this.performReset();
+            const resetInfo = this.performReset();
             Storage.save('lastResetDate', new Date().toDateString());
 
             // Ricarica UI
@@ -93,7 +114,19 @@ const DailyReset = {
                 item.classList.remove('done');
             });
 
-            showMessage('🌅 Nuovo giorno! Azioni resettate.', 'positive');
+            const carryCount = Number(resetInfo?.carryOver?.count || 0);
+            const message = carryCount > 0
+                ? `🌅 Nuovo giorno! ${carryCount} task portate su oggi.`
+                : '🌅 Nuovo giorno! Azioni resettate.';
+
+            showMessage(message, 'positive');
+
+            if (typeof DailyReview !== 'undefined') {
+                const latest = DailyReview.getLatestReview();
+                if (latest && DailyReview.isUnread(latest)) {
+                    setTimeout(() => DailyReview.open(latest.dateKey), 350);
+                }
+            }
 
             // Rischedula per la prossima mezzanotte
             this.scheduleMidnightReset();
