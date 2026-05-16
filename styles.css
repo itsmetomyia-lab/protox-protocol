@@ -13934,3 +13934,299 @@ body.shades-mode #planner-panel .week-label{
 
 /* TEMP: nascondi selettore lingua */
 #page-profile .profile-option-lang{ display:none !important; }
+
+/* ============================================
+   FINAL REWARDS — 100K REPS / 100K XP
+   ============================================ */
+
+#final-rewards-entry {
+  margin-top: 12px;
+}
+
+.final-rewards-entry-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid var(--border);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+}
+
+.final-rewards-entry-card.claim-ready {
+  box-shadow:
+    0 0 24px var(--purple-glow),
+    0 16px 40px rgba(0,0,0,0.28);
+}
+
+.final-rewards-entry-left {
+  min-width: 0;
+  text-align: left;
+}
+
+.final-rewards-entry-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 6px;
+}
+
+.final-rewards-entry-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: 0.8px;
+}
+
+.final-rewards-entry-sub {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.final-rewards-open-btn {
+  flex: 0 0 auto;
+}
+
+#final-rewards-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  background: rgba(5, 8, 16, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+#final-rewards-overlay.hidden {
+  display: none;
+}
+
+.final-rewards-modal {
+  width: min(920px, 100%);
+  max-height: calc(100svh - 32px);
+  overflow: auto;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(18,18,30,0.96), rgba(10,10,20,0.98));
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 28px 90px rgba(0,0,0,0.45);
+  padding: 20px;
+  position: relative;
+}
+
+.final-rewards-modal::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--purple-main), #fbbf24, transparent);
+}
+
+.final-rewards-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.final-rewards-modal-head h2 {
+  margin: 8px 0 6px;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.final-rewards-modal-head p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+
+.final-rewards-modal-eyebrow {
+  color: #fbbf24;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+}
+
+.final-rewards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.final-reward-card {
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.final-reward-card.ready {
+  box-shadow: 0 0 28px var(--purple-glow);
+}
+
+.final-reward-card.claimed {
+  border-color: rgba(16, 185, 129, 0.30);
+  box-shadow: 0 0 24px rgba(16,185,129,0.14);
+}
+
+.final-reward-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.final-reward-eyebrow {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 6px;
+}
+
+.final-reward-title {
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  letter-spacing: 1px;
+}
+
+.final-reward-icon {
+  font-size: 1.8rem;
+}
+
+.final-reward-progress {
+  margin-bottom: 14px;
+}
+
+.final-reward-progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.final-reward-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.final-reward-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--purple-main), #fbbf24);
+  box-shadow: 0 0 18px var(--purple-glow);
+}
+
+.final-reward-copy p {
+  color: var(--text-main);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+.final-reward-copy ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.final-reward-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.final-reward-status {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.final-reward-status.locked {
+  color: var(--text-dim);
+}
+
+.final-reward-status.ready {
+  color: #fbbf24;
+}
+
+.final-reward-status.claimed {
+  color: #10b981;
+}
+
+.final-reward-claim-btn.disabled,
+.final-reward-claim-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.final-reward-claim-btn.claimed {
+  border-color: rgba(16,185,129,0.35);
+  color: #10b981;
+}
+
+.final-rewards-dual {
+  margin-top: 16px;
+  border-radius: 18px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid rgba(251,191,36,0.22);
+  background: linear-gradient(180deg, rgba(251,191,36,0.08), rgba(139,92,246,0.08));
+}
+
+.final-rewards-dual-badge {
+  font-family: 'Orbitron', sans-serif;
+  color: #fbbf24;
+  letter-spacing: 2px;
+  font-size: 0.88rem;
+  margin-bottom: 8px;
+}
+
+.final-rewards-dual p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 760px) {
+  .final-rewards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .final-rewards-entry-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .final-reward-footer {
+    align-items: stretch;
+  }
+}

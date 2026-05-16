@@ -3,7 +3,7 @@
 // Permette funzionamento offline
 // ============================================
 
-const CACHE_NAME = 'protox-v14';
+const CACHE_NAME = 'protox-v15';
 
 const ASSETS = [
   '/',
@@ -25,6 +25,7 @@ const ASSETS = [
   '/modules/xp-multiplier.js',
   '/modules/records.js',
   '/modules/achievements.js',
+  '/modules/final-rewards.js',
   '/modules/missions.js',
   '/modules/protox-tracker.js',
   '/modules/timer.js',

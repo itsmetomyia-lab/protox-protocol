@@ -386,6 +386,10 @@ div.innerHTML = `
     // Profile name
     const nameEl = document.getElementById('profile-name-header');
     if (nameEl) nameEl.textContent = player.name || 'Player';
+
+    if (typeof FinalRewards !== 'undefined') {
+    FinalRewards.renderEntry();
+    }
 }
 
 // ---- LEVEL UP POPUP ----

@@ -27,7 +27,8 @@ const ACHIEVEMENTS = [
     { id: 'xp_500', name: 'First Level Up', desc: '500 XP totali', icon: '⬆️', condition: p => p.xp >= 500 },
     { id: 'xp_5000', name: 'XP Hunter', desc: '5.000 XP', icon: '🎮', condition: p => p.xp >= 5000 },
     { id: 'xp_20000', name: 'XP Legend', desc: '20.000 XP', icon: '🌟', condition: p => p.xp >= 20000 },
-
+    { id: 'xp_100000', name: 'Century Core', desc: '100.000 XP totali', icon: '👑', condition: p => p.xp >= 100000 },
+    
     // LEVEL
     { id: 'level_5', name: 'Awakened', desc: 'Raggiungi livello 5', icon: '👁️', condition: p => p.level >= 5 },
     { id: 'level_8', name: 'Warrior', desc: 'Raggiungi livello 8', icon: '🗡️', condition: p => p.level >= 8 },
